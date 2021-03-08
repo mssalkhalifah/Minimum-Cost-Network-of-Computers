@@ -1,3 +1,7 @@
+com/project/model/Edge.java
+ com.project.model.Edge
+com/project/model/MyGraph.java
+ com.project.model.MyGraph
 com/project/controller/Application.java
  com.project.controller.Application
 com/project/controller/EntryPoint.java
