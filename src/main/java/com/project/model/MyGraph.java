@@ -18,6 +18,17 @@ public class MyGraph {
         }
     }
 
+    public MyGraph(int totalVertices, List<Edge> edges) {
+        TOTAL_VERTICES = totalVertices;
+        edgeList = edges;
+        hashMap = new HashMap<>();
+
+        for (Edge edge : edges) {
+            hashMap.put(edge.source, new HashSet<>(edge.destination));
+            hashMap.put(edge.destination, new HashSet<>(edge.source));
+        }
+    }
+
     public void addEdge(int src, int dst, int weight) {
         if (!hashMap.get(src).contains(dst) && !hashMap.get(dst).contains(src) && src != dst) {
             edgeList.add(new Edge(src, dst, weight));
@@ -42,8 +53,9 @@ public class MyGraph {
         for (int i = 1; i < TOTAL_VERTICES; i++) {
             stringBuilder.append(String.format(", %d", i));
         }
-        stringBuilder.append(String.format("\n%d Edges: {", edgeList.size()));
+        stringBuilder.append("]");
 
+        stringBuilder.append(String.format("\n%d Edges: {", edgeList.size()));
         for (Edge edge : edgeList) {
             stringBuilder.append(String.format("[%s]", edge));
         }

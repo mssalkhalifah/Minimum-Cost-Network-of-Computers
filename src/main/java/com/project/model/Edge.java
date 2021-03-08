@@ -11,6 +11,18 @@ public class Edge implements Comparable<Edge>{
         this.destination = destination;
     }
 
+    public int getWeight() {
+        return weight;
+    }
+
+    public int getSource() {
+        return source;
+    }
+
+    public int getDestination() {
+        return destination;
+    }
+
     @Override
     public int compareTo(Edge compareEdge) {
         return this.weight - compareEdge.weight;

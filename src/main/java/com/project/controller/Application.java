@@ -2,6 +2,7 @@ package com.project.controller;
 
 import com.project.model.Edge;
 import com.project.model.MyGraph;
+import com.project.utility.Algorithms;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +32,9 @@ public class Application implements Runnable {
         ArrayList<Edge> edgeArrayList = myGraph.getEdgeList();
         System.out.println(edgeArrayList);
         Collections.sort(edgeArrayList);
-        System.out.println(edgeArrayList);
+        System.out.println(edgeArrayList + "\n");
+
+        // Example of Kruskal
+        System.out.println(Algorithms.kruskal(myGraph));
     }
 }
