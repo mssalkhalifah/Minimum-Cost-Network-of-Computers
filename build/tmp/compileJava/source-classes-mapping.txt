@@ -1,12 +1,4 @@
-com/project/gui/Controller.java
- com.project.gui.Controller
-com/project/graph/MyLink.java
- com.project.graph.MyLink
-com/project/gui/View.java
- com.project.gui.View
-com/project/utility/GenerateGraphUtil.java
- com.project.utility.GenerateGraphUtil
-com/project/application/Application.java
- com.project.application.Application
-com/project/application/Main.java
- com.project.application.Main
+com/project/controller/Application.java
+ com.project.controller.Application
+com/project/controller/EntryPoint.java
+ com.project.controller.EntryPoint
