@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+group 'com.mssalkhalifah'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    compile "colt:colt:1.2.0"
+    compile "net.sf.jung:jung-api:2.1.1"
+    compile "net.sf.jung:jung-graph-impl:2.1.1"
+    compile "net.sf.jung:jung-visualization:2.1.1"
+    compile "net.sf.jung:jung-algorithms:2.1.1"
+    compile "net.sf.jung:jung-io:2.1.1"
+    compile "net.sf.jung:jung-samples:2.1.1"
+}
+
+test {
+    useJUnitPlatform()
+}
