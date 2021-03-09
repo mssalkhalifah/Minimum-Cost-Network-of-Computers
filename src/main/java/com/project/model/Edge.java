@@ -1,9 +1,9 @@
 package com.project.model;
 
 public class Edge implements Comparable<Edge>{
-    int weight;
-    int source;
-    int destination;
+    private final int weight;
+    private final int source;
+    private final int destination;
 
     public Edge(int source, int destination, int weight) {
         this.source = source;

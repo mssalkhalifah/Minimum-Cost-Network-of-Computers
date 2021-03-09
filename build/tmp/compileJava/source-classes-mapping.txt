@@ -1,9 +1,11 @@
+com/project/model/Edge.java
+ com.project.model.Edge
 com/project/model/Subset.java
  com.project.model.Subset
 com/project/utility/SetUtil.java
  com.project.utility.SetUtil
-com/project/model/Edge.java
- com.project.model.Edge
+com/project/model/Pair.java
+ com.project.model.Pair
 com/project/controller/EntryPoint.java
  com.project.controller.EntryPoint
 com/project/model/MyGraph.java

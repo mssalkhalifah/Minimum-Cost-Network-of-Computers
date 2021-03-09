@@ -5,35 +5,39 @@ import java.util.*;
 public class MyGraph {
     public final int TOTAL_VERTICES;
 
-    private Map<Integer, HashSet<Integer>> hashMap;
-    private List<Edge> edgeList;
+    private final HashMap<Integer, HashMap<Integer, Integer>> graph;
+    private final List<Edge> edgeList;
 
     public MyGraph(int totalVertices) {
         TOTAL_VERTICES = totalVertices;
         edgeList = new LinkedList<>();
-        hashMap = new HashMap<>();
+        graph = new HashMap<>();
 
-        for (int i = 0; i < TOTAL_VERTICES; i++) {
-            hashMap.put(i, new HashSet<>());
+        for (int i = 0; i < totalVertices; i++) {
+            graph.put(i, new HashMap<>());
         }
     }
 
     public MyGraph(int totalVertices, List<Edge> edges) {
         TOTAL_VERTICES = totalVertices;
         edgeList = edges;
-        hashMap = new HashMap<>();
+        graph = new HashMap<>();
+
+        for (int i = 0; i < totalVertices; i++) {
+            graph.put(i, new HashMap<>());
+        }
 
         for (Edge edge : edges) {
-            hashMap.put(edge.source, new HashSet<>(edge.destination));
-            hashMap.put(edge.destination, new HashSet<>(edge.source));
+            graph.get(edge.getSource()).put(edge.getDestination(), edge.getWeight());
+            graph.get(edge.getDestination()).put(edge.getSource(), edge.getWeight());
         }
     }
 
     public void addEdge(int src, int dst, int weight) {
-        if (!hashMap.get(src).contains(dst) && !hashMap.get(dst).contains(src) && src != dst) {
+        if (!graph.get(src).containsKey(dst) && !graph.get(dst).containsKey(src) && src != dst) {
             edgeList.add(new Edge(src, dst, weight));
-            hashMap.get(src).add(dst);
-            hashMap.get(dst).add(src);
+            graph.get(src).put(dst, weight);
+            graph.get(dst).put(src, weight);
         } else {
             if (src == dst)
                 throw new IllegalArgumentException("Loop Edge");
@@ -41,8 +45,8 @@ public class MyGraph {
         }
     }
 
-    public ArrayList<Edge> getEdgeList() {
-        return new ArrayList<>(edgeList);
+    public List<Edge> getEdgeList() {
+        return edgeList;
     }
 
     @Override
