@@ -4,8 +4,8 @@ import com.project.model.Edge;
 import com.project.model.MyGraph;
 import com.project.utility.Algorithms;
 
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class Application implements Runnable {
 
@@ -29,12 +29,15 @@ public class Application implements Runnable {
         System.out.println(myGraph + "\n");
 
         // Example edge list sorted
-        ArrayList<Edge> edgeArrayList = myGraph.getEdgeList();
+        List<Edge> edgeArrayList = myGraph.getEdgeList();
         System.out.println(edgeArrayList);
         Collections.sort(edgeArrayList);
         System.out.println(edgeArrayList + "\n");
 
         // Example of Kruskal
-        System.out.println(Algorithms.kruskal(myGraph));
+        System.out.println(Algorithms.kruskal(myGraph) + "\n");
+
+        // Example of Prim
+        System.out.println(Algorithms.prim(myGraph));
     }
 }

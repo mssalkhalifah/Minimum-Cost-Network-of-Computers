@@ -49,6 +49,10 @@ public class MyGraph {
         return edgeList;
     }
 
+    public HashMap<Integer, HashMap<Integer, Integer>> getGraph() {
+        return graph;
+    }
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
