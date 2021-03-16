@@ -20,6 +20,9 @@ dependencies {
     compile "net.sf.jung:jung-io:2.1.1"
     compile "net.sf.jung:jung-samples:2.1.1"
     compile "org.jheaps:jheaps:0.14"
+    compile "org.graphstream:gs-core:2.0"
+    compile "org.graphstream:gs-ui-swing:2.0"
+    compile "org.graphstream:gs-algo:2.0"
 }
 
 test {
