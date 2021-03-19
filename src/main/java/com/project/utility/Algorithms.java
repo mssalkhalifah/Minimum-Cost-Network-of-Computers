@@ -25,7 +25,7 @@ public class Algorithms {
             resultGraph.addEdge(randomSource, i, randomWeight);
         }
 
-        int maxEdge = (int) Math.ceil((((double) numberOfVector * (numberOfVector - 1) / 2) ) / numberOfVector);
+        int maxEdge = (int) Math.ceil((((double) numberOfVector * (numberOfVector - 1) / 2) ) * 0.7 / numberOfVector);
         for (int i = 0; i < maxEdge; i++) {
             int src = random.nextInt(numberOfVector);
             int dst = random.nextInt(numberOfVector);

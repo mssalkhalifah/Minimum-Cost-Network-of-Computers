@@ -17,27 +17,45 @@ public class Application implements Runnable {
 
     @Override
     public void run() {
-        MyGraph myGraph = Algorithms.generateGraph(20);
-        //MyGraph myGraph = new MyGraph(9);
+        MyGraph myGraph = Algorithms.generateGraph(50);
+        //MyGraph myGraph = new MyGraph(10);
 
-        /*myGraph.addEdge(0, 1, 10);
-        myGraph.addEdge(0, 6, 5);
-        myGraph.addEdge(0, 5, 50);
-        myGraph.addEdge(1, 6, 7);
-        myGraph.addEdge(6, 5, 8);
-        myGraph.addEdge(1, 2, 15);
-        myGraph.addEdge(1, 7, 20);
-        myGraph.addEdge(6, 7, 15);
-        myGraph.addEdge(5, 7, 10);
-        myGraph.addEdge(5, 4, 30);
-        myGraph.addEdge(7, 2, 15);
-        myGraph.addEdge(7, 8, 100);
-        myGraph.addEdge(7, 4, 40);
-        myGraph.addEdge(2, 8, 1);
-        myGraph.addEdge(8, 4, 35);
-        myGraph.addEdge(2, 3, 50);
-        myGraph.addEdge(8, 3, 7);
-        myGraph.addEdge(4, 3, 10);*/
+        /*myGraph.addEdge(0, 1, 3);
+        myGraph.addEdge(0, 3, 4);
+        myGraph.addEdge(1, 3, 5);
+        myGraph.addEdge(1, 2, 8);
+        myGraph.addEdge(1, 4, 6);
+        myGraph.addEdge(2, 3, 1);
+        myGraph.addEdge(2, 4, 2);
+        myGraph.addEdge(4, 3, 9);*/
+
+
+        /*myGraph.addEdge(0, 1, 11);
+        myGraph.addEdge(0, 2, 4);
+        myGraph.addEdge(0, 3, 1);
+        myGraph.addEdge(1, 3, 3);
+        myGraph.addEdge(2, 3, 2);
+        myGraph.addEdge(2, 4, 8);
+        myGraph.addEdge(3, 4, 6);
+        myGraph.addEdge(3, 5, 5);
+        myGraph.addEdge(4, 6, 9);
+        myGraph.addEdge(5, 6, 12);
+        myGraph.addEdge(6, 7, 13);
+        myGraph.addEdge(7, 8, 20);
+        myGraph.addEdge(7, 9, 7);
+        myGraph.addEdge(9, 8, 10);*/
+
+        /*myGraph.addEdge(0, 1, 16);
+        myGraph.addEdge(0, 2, 13);
+        myGraph.addEdge(1, 2, 10);
+        //myGraph.addEdge(2, 1, 4, EdgeType.DIRECT);
+        myGraph.addEdge(1, 3, 12);
+        myGraph.addEdge(3, 2, 9);
+        myGraph.addEdge(2, 4, 14);
+        myGraph.addEdge(4, 3, 7);
+        myGraph.addEdge(3, 5, 20);
+        myGraph.addEdge(4, 5, 4);*/
+
 
         Graph graph = new SingleGraph("Test");
 
@@ -68,7 +86,7 @@ public class Application implements Runnable {
         graph.setAttribute("ui.antialias");
         graph.setAttribute("ui.stylesheet",
                 "node { fill-mode: dyn-plain; text-size: 10;text-alignment: above; text-background-mode: plain; text-background-color: #EB2; text-color: #222; }" +
-                        "edge { fill-mode: dyn-plain;}");
+                        "edge { fill-mode: dyn-plain; }");
 
         for (org.graphstream.graph.Edge edge : edgeLinkedList) {
             if (mst.getGraph().get(Integer.parseInt(edge.getNode0().getId())).containsKey(Integer.parseInt(edge.getNode1().getId()))) {
