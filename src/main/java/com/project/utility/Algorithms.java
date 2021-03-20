@@ -10,44 +10,6 @@ import org.jheaps.tree.FibonacciHeap;
 import java.util.*;
 
 public class Algorithms {
-    private static final int MAX_WEIGHT = 1000;
-    private static final int MIN_WEIGHT = 1;
-
-    public static MyGraph generateGraph(int numberOfVector) {
-        MyGraph resultGraph = new MyGraph(numberOfVector);
-
-        Random random = new Random();
-
-        resultGraph.addEdge(0, 1, MIN_WEIGHT + random.nextInt(MAX_WEIGHT));
-        for (int i = 2; i < numberOfVector; i++) {
-            int randomWeight = MIN_WEIGHT + random.nextInt(MAX_WEIGHT);
-            int randomSource = random.nextInt(i);
-            resultGraph.addEdge(randomSource, i, randomWeight);
-        }
-
-        int maxEdge = (int) Math.ceil((((double) numberOfVector * (numberOfVector - 1) / 2) ) * 0.7 / numberOfVector);
-        for (int i = 0; i < maxEdge; i++) {
-            int src = random.nextInt(numberOfVector);
-            int dst = random.nextInt(numberOfVector);
-
-            if (src == dst) {
-                if (dst == numberOfVector - 1) {
-                    --dst;
-                } else {
-                    ++dst;
-                }
-            }
-
-            if (!resultGraph.getGraph().get(src).containsKey(dst)) {
-                resultGraph.addEdge(src, dst, MIN_WEIGHT + random.nextInt(MAX_WEIGHT));
-            } else {
-                i--;
-            }
-        }
-
-        return resultGraph;
-    }
-
     public static MyGraph kruskal(MyGraph myGraph) {
         LinkedList<Edge> mstResult = new LinkedList<>();
         List<Edge> edgeList = myGraph.getEdgeList();

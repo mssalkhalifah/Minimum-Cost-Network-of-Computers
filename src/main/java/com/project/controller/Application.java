@@ -1,104 +1,123 @@
 package com.project.controller;
 
-import com.project.model.Edge;
-import com.project.model.MyGraph;
-import com.project.utility.Algorithms;
+import com.project.utility.MinimumSpanningTreeKruskal;
+import com.project.utility.MyGraphGenerator;
+import com.project.view.MainView;
+import org.graphstream.algorithm.Toolkit;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
-import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.ui.layout.Layout;
-import org.graphstream.ui.layout.springbox.implementations.SpringBox;
+import org.graphstream.stream.ProxyPipe;
+import org.graphstream.ui.swing_viewer.SwingViewer;
+import org.graphstream.ui.view.View;
 import org.graphstream.ui.view.Viewer;
 
 import java.awt.*;
-import java.util.LinkedList;
 
 public class Application implements Runnable {
+    private Graph mainGraph;
+    private SwingViewer graphSwing;
+    private View graphViewer;
+    private MainView mainView;
+    private MyGraphGenerator myGraphGenerator;
+    private ProxyPipe pipe;
+    private boolean built;
 
     @Override
     public void run() {
-        MyGraph myGraph = Algorithms.generateGraph(50);
-        //MyGraph myGraph = new MyGraph(10);
+        mainView = new MainView();
 
-        /*myGraph.addEdge(0, 1, 3);
-        myGraph.addEdge(0, 3, 4);
-        myGraph.addEdge(1, 3, 5);
-        myGraph.addEdge(1, 2, 8);
-        myGraph.addEdge(1, 4, 6);
-        myGraph.addEdge(2, 3, 1);
-        myGraph.addEdge(2, 4, 2);
-        myGraph.addEdge(4, 3, 9);*/
+        mainView.display();
 
+        mainView.getGenerateButton().addActionListener(e -> {
+            int chosenVertices = Integer.parseInt(mainView.getNodesTextField().getText());
 
-        /*myGraph.addEdge(0, 1, 11);
-        myGraph.addEdge(0, 2, 4);
-        myGraph.addEdge(0, 3, 1);
-        myGraph.addEdge(1, 3, 3);
-        myGraph.addEdge(2, 3, 2);
-        myGraph.addEdge(2, 4, 8);
-        myGraph.addEdge(3, 4, 6);
-        myGraph.addEdge(3, 5, 5);
-        myGraph.addEdge(4, 6, 9);
-        myGraph.addEdge(5, 6, 12);
-        myGraph.addEdge(6, 7, 13);
-        myGraph.addEdge(7, 8, 20);
-        myGraph.addEdge(7, 9, 7);
-        myGraph.addEdge(9, 8, 10);*/
+            myGraphGenerator = new MyGraphGenerator(chosenVertices);
+            myGraphGenerator.execute();
 
-        /*myGraph.addEdge(0, 1, 16);
-        myGraph.addEdge(0, 2, 13);
-        myGraph.addEdge(1, 2, 10);
-        //myGraph.addEdge(2, 1, 4, EdgeType.DIRECT);
-        myGraph.addEdge(1, 3, 12);
-        myGraph.addEdge(3, 2, 9);
-        myGraph.addEdge(2, 4, 14);
-        myGraph.addEdge(4, 3, 7);
-        myGraph.addEdge(3, 5, 20);
-        myGraph.addEdge(4, 5, 4);*/
-
-
-        Graph graph = new SingleGraph("Test");
-
-        MyGraph mst = Algorithms.prim(myGraph);
-
-        LinkedList<Node> linkedList = new LinkedList<>();
-        LinkedList<org.graphstream.graph.Edge> edgeLinkedList = new LinkedList<>();
-
-        for (int i = 0; i < myGraph.TOTAL_VERTICES; i++) {
-            Node n = graph.addNode(String.valueOf(i));
-            linkedList.add(n);
-            n.setAttribute("ui.label", String.valueOf(i));
-        }
-
-        for (Edge edge : myGraph.getEdgeList()) {
-            int n1 = edge.getSource();
-            int n2 = edge.getDestination();
-            int weight = edge.getWeight();
-            org.graphstream.graph.Edge e = graph.addEdge(String.format("%d-%d", n1, n2), n1, n2);
-            e.setAttribute("ui.label", String.valueOf(weight));
-            edgeLinkedList.add(e);
-            //e.setAttribute("layout.weight", weight * 0.01);
-        }
-
-        System.setProperty("org.graphstream.ui", "swing");
-
-        graph.setAttribute("ui.quality");
-        graph.setAttribute("ui.antialias");
-        graph.setAttribute("ui.stylesheet",
-                "node { fill-mode: dyn-plain; text-size: 10;text-alignment: above; text-background-mode: plain; text-background-color: #EB2; text-color: #222; }" +
-                        "edge { fill-mode: dyn-plain; }");
-
-        for (org.graphstream.graph.Edge edge : edgeLinkedList) {
-            if (mst.getGraph().get(Integer.parseInt(edge.getNode0().getId())).containsKey(Integer.parseInt(edge.getNode1().getId()))) {
-                edge.setAttribute("ui.color", Color.RED);
+            while (!myGraphGenerator.isDone())
+            {
+                System.out.println("Generating..."); //Template
             }
-        }
 
-        Layout layout = new SpringBox(false);
-        layout.setQuality(1);
-        graph.addSink(layout);
-        layout.addAttributeSink(graph);
+            if (mainGraph == null) {
+                mainGraph = myGraphGenerator.getGraph();
+            } else {
+                mainGraph.clear();
 
-        Viewer view = graph.display();
+                Graph temp = myGraphGenerator.getGraph();
+
+                for (int i = 0; i < temp.getNodeCount(); i++) {
+                    mainGraph.addNode(String.valueOf(i));
+                }
+
+                temp.edges().forEach(edge ->
+                        mainGraph.addEdge(edge.getId(), edge.getNode0().getId(), edge.getNode1().getId()));
+            }
+
+            mainGraph.setAttribute("ui.quality");
+            mainGraph.setAttribute("ui.antialias");
+
+            if (graphSwing == null) {
+                graphSwing = new SwingViewer(mainGraph, Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+                graphSwing.enableAutoLayout();
+
+                graphViewer = graphSwing.addDefaultView(false);
+            } else {
+                graphSwing.getGraphicGraph().clear();
+
+                for (int i = 0; i < mainGraph.getNodeCount(); i++) {
+                    graphSwing.getGraphicGraph().addNode(mainGraph.getNode(i).getId());
+                }
+
+                for (int i = 0; i < mainGraph.getEdgeCount(); i++) {
+                    Edge edge = mainGraph.getEdge(i);
+                    graphSwing.getGraphicGraph().addEdge(edge.getId(), edge.getNode0().getId(), edge.getNode1().getId(), false);
+                }
+            }
+
+            pipe = graphSwing.newViewerPipe();
+            pipe.addAttributeSink(mainGraph);
+
+            graphViewer.getCamera().setAutoFitView(true);
+
+            if (!built) {
+                mainView.getGraphPanel().add((Component) graphViewer);
+                built = true;
+            }
+
+            mainView.getGraphPanel().validate();
+            mainView.getGraphPanel().repaint();
+        });
+
+        mainView.getRunButton().addActionListener(e -> {
+            Thread thread = new Thread(() -> {
+                MinimumSpanningTreeKruskal mstKruskal = new MinimumSpanningTreeKruskal();
+                mstKruskal.init(mainGraph);
+                mstKruskal.compute();
+
+                pipe.pump();
+                for (int i = 0; i < mainGraph.getNodeCount(); i++) {
+                    Node node = mainGraph.getNode(String.valueOf(i));
+                    double[] xyz = Toolkit.nodePosition(mainGraph, node.getId());
+                    mstKruskal.getMstGraph().getNode(node.getId()).setAttribute("xyz", xyz[0], xyz[1], xyz[2]);
+                }
+
+                SwingViewer swingViewer = new SwingViewer(mstKruskal.getMstGraph(), Viewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
+
+                View view = swingViewer.addDefaultView(false);
+
+                for (Edge edge : mstKruskal.getMstResult()) {
+                    if (!edge.getId().equals(mstKruskal.getSuperComputers().getId())) {
+                        edge.setAttribute("ui.style", "fill-color: green;");
+                    }
+                }
+
+                mainView.getGraphPanel().add((Component) view);
+                mainView.getGraphPanel().validate();
+                mainView.getGraphPanel().repaint();
+            });
+            thread.start();
+        });
     }
 }
