@@ -1,24 +1,26 @@
-com/project/model/MyGraph.java
- com.project.model.MyGraph
-com/project/model/Subset.java
- com.project.model.Subset
-com/project/model/Edge.java
- com.project.model.Edge
-com/project/utility/SetUtil.java
- com.project.utility.SetUtil
-com/project/utility/Algorithms.java
- com.project.utility.Algorithms
 com/project/utility/GraphUtil.java
  com.project.utility.GraphUtil
-com/project/utility/MyAlgorithm.java
- com.project.utility.MyAlgorithm
-com/project/utility/MinimumSpanningTreeKruskal.java
- com.project.utility.MinimumSpanningTreeKruskal
+com/project/model/Subset.java
+ com.project.model.Subset
 com/project/utility/MyGraphGenerator.java
  com.project.utility.MyGraphGenerator
-com/project/view/MainView.java
- com.project.view.MainView
- com.project.view.MainView$1
+com/project/model/Edge.java
+ com.project.model.Edge
+com/project/utility/Algorithms.java
+ com.project.utility.Algorithms
+com/project/utility/SetUtil.java
+ com.project.utility.SetUtil
+com/project/model/MyGraph.java
+ com.project.model.MyGraph
+com/project/utility/MinimumSpanningTreeKruskal.java
+ com.project.utility.MinimumSpanningTreeKruskal
+com/project/utility/MyAlgorithm.java
+ com.project.utility.MyAlgorithm
+ com.project.utility.MyAlgorithm$algorithms
+com/project/utility/GraphGeneratorWorker.java
+ com.project.utility.GraphGeneratorWorker
+com/project/view/MSTResultView.java
+ com.project.view.MSTResultView
 com/project/controller/Application.java
  com.project.controller.Application
 com/project/controller/EntryPoint.java

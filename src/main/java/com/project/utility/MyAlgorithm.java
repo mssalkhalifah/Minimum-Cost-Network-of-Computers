@@ -1,20 +1,35 @@
 package com.project.utility;
 
 import org.graphstream.algorithm.Algorithm;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 
-public abstract class MyAlgorithm implements Algorithm {
-    protected Graph graph;
+import java.util.List;
 
-    protected abstract void computeBody();
+public abstract class MyAlgorithm implements Algorithm {
+    public enum algorithms {
+        KRUSKAL, PRIM
+    }
+
+    protected Graph graph;
+    protected Edge superComputers;
+    protected List<Edge> mstResult;
+    protected int originalWeight;
+
+    public Edge getSuperComputers() {
+        return superComputers;
+    }
+
+    public List<Edge> getMstResult() {
+        return mstResult;
+    }
+
+    public int getOriginalWeight() {
+        return originalWeight;
+    }
 
     @Override
     public void init(Graph graph) {
         this.graph = graph;
-    }
-
-    @Override
-    public void compute() {
-        computeBody();
     }
 }
