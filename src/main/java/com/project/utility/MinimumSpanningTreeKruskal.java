@@ -17,13 +17,11 @@ public class MinimumSpanningTreeKruskal extends MyAlgorithm {
         Random random = new Random();
         mstResult = new LinkedList<>();
 
-        edgeList = new ArrayList<>(graph.edges().collect(Collectors.toList()));
+        edgeList = graph.edges().collect(Collectors.toList());
 
         int minWeight = 1;
         int maxWeight = 500;
-        int size = edgeList.size();
-        for (int i = 0; i < size; i++) {
-            Edge edge = edgeList.get(i);
+        for (Edge edge : edgeList) {
             int weight = minWeight + random.nextInt(maxWeight);
             edge.setAttribute("weight", weight);
             edge.setAttribute("ui.label", weight);
@@ -51,10 +49,7 @@ public class MinimumSpanningTreeKruskal extends MyAlgorithm {
             subsets[i].setRank(0);
         }
 
-        int size = edgeList.size();
-        for (int i = 0; i < size; i++) {
-            Edge edge = edgeList.get(i);
-
+        for (Edge edge : edgeList) {
             int x = SetUtil.find(subsets, edge.getNode0().getIndex());
             int y = SetUtil.find(subsets, edge.getNode1().getIndex());
 

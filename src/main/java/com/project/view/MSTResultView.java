@@ -2,24 +2,26 @@ package com.project.view;
 
 import com.project.utility.GraphGeneratorWorker;
 import com.project.utility.MinimumSpanningTreeKruskal;
+import com.project.utility.MinimumSpanningTreePrim;
 import com.project.utility.MyAlgorithm;
 import org.graphstream.algorithm.Toolkit;
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
+import org.graphstream.graph.*;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.swing_viewer.SwingViewer;
+import org.graphstream.ui.view.View;
+import org.graphstream.ui.view.Viewer;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.project.controller.Application.swingViewer;
-import static com.project.controller.Application.view;
+public class MSTResultView extends SwingWorker<Void, Void> {
+    private SwingViewer swingViewer;
+    private View view;
 
-public class MSTResultView {
     private MyAlgorithm.algorithms algorithm;
 
     private JTabbedPane tabbedPane;
@@ -27,9 +29,10 @@ public class MSTResultView {
 
     private int currentGraphIndex;
     private int currentTabIndex;
+    private int numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep;
 
     private List<JPanel> tabList;
-    private List<SwingWorker> swingWorkers;
+    private List<GraphGeneratorWorker> graphGenerators;
     private List<List<Graph>> graphLists;
 
     public MSTResultView(JPanel graphPanel, MyAlgorithm.algorithms algorithm) {
@@ -37,10 +40,14 @@ public class MSTResultView {
         this.graphPanel = graphPanel;
 
         tabbedPane = new JTabbedPane();
-        swingWorkers = new LinkedList<>();
+        graphGenerators = new LinkedList<>();
     }
 
     public void init(int numberOfVertexPerStep, int maxNumberOfIteration, int iterationPerStep) {
+        this.numberOfVertexPerStep = numberOfVertexPerStep;
+        this.maxNumberOfIteration = maxNumberOfIteration;
+        this.iterationPerStep = iterationPerStep;
+
         currentGraphIndex = 0;
         currentTabIndex = 0;
 
@@ -55,21 +62,21 @@ public class MSTResultView {
             JPanel topPanel = new JPanel();
             topPanel.setLayout(new FlowLayout());
 
-            JLabel pageNumber = new JLabel(String.format("Page %d of %d", currentGraphIndex + 1, iterationPerStep));
+            JLabel pageNumber = new JLabel(String.format("Page %d of %d", 1, iterationPerStep));
 
             JButton nextButton = new JButton("Next");
             JButton prevButton = new JButton("Prev");
 
             nextButton.addActionListener(e -> {
                 if (currentGraphIndex < iterationPerStep - 1) {
-                    changeGraph(graphLists.get(currentTabIndex).get(++currentGraphIndex), swingViewer);
+                    changeGraph(graphLists.get(currentTabIndex).get(++currentGraphIndex));
                     pageNumber.setText(String.format("Page %d of %d", currentGraphIndex + 1, iterationPerStep));
                 }
             });
 
             prevButton.addActionListener(e -> {
                 if (currentGraphIndex > 0) {
-                    changeGraph(graphLists.get(currentTabIndex).get(--currentGraphIndex), swingViewer);
+                    changeGraph(graphLists.get(currentTabIndex).get(--currentGraphIndex));
                     pageNumber.setText(String.format("Page %d of %d", currentGraphIndex + 1, iterationPerStep));
                 }
             });
@@ -88,7 +95,7 @@ public class MSTResultView {
             tabbedPane.addChangeListener(e -> {
                 currentTabIndex = Integer.parseInt(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex())) / numberOfVertexPerStep - 1;
                 currentGraphIndex = 0;
-                changeGraph(graphLists.get(currentTabIndex).get(currentGraphIndex), swingViewer);
+                changeGraph(graphLists.get(currentTabIndex).get(currentGraphIndex));
                 tabList.get(currentTabIndex).add((Component) view);
                 graphPanel.validate();
                 graphPanel.repaint();
@@ -100,9 +107,11 @@ public class MSTResultView {
             for (int j = 0; j < iterationPerStep; j++) {
                 Graph graph = new SingleGraph(String.valueOf((i + 1) * numberOfVertexPerStep));
                 graphList.add(graph);
-                swingWorkers.add(new GraphGeneratorWorker(
-                        graph,
-                        (i + 1) * numberOfVertexPerStep, new MinimumSpanningTreeKruskal()));
+                graphGenerators.add(new GraphGeneratorWorker(
+                        (i + 1) * numberOfVertexPerStep,
+                        (algorithm == MyAlgorithm.algorithms.KRUSKAL
+                                ? new MinimumSpanningTreeKruskal()
+                                : new MinimumSpanningTreePrim())));
             }
             i++;
         }
@@ -112,58 +121,99 @@ public class MSTResultView {
         return tabbedPane;
     }
 
-    public List<JPanel> getTabList() {
-        return tabList;
-    }
+    public double[] getResults() {
+        double[] worstResult = new double[maxNumberOfIteration / numberOfVertexPerStep];
 
-    public Graph getFirstGraph() {
-        return graphLists.get(currentTabIndex).get(currentGraphIndex);
-    }
+        for (int i = 0; i < worstResult.length; i++) {
+            double value = 0;
 
-    public void compute() {
-        for (SwingWorker worker : swingWorkers) {
-            worker.execute();
+            for (int j = 0; j < iterationPerStep; j++) {
+               value += graphGenerators.get((i * iterationPerStep) + j).getBenchmarkResult() / 1000000;
+            }
+
+            worstResult[i] = value / iterationPerStep;
         }
+
+        return worstResult;
     }
 
-    public void blockUntilDone() throws InterruptedException {
-        for (SwingWorker worker : swingWorkers) {
-            waitForWorker(worker);
-        }
-    }
-
-    private void waitForWorker(SwingWorker worker) throws InterruptedException {
+    @Override
+    protected Void doInBackground() throws Exception {
         try {
-            worker.get();
-        } catch (ExecutionException e) {
-            throw new RuntimeException(e);
+            graphGenerators.forEach(graphGeneratorWorker -> {
+                for (int i = 0; i < maxNumberOfIteration / numberOfVertexPerStep; i++) {
+                    for (int j = 0; j < iterationPerStep; j++) {
+                        graphGenerators
+                                .get((i * iterationPerStep) + j)
+                                .init(graphLists.get(i).get(j));
+                    }
+                }
+
+                graphGeneratorWorker.compute();
+            });
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
         }
+
+        return null;
     }
 
-    private void changeGraph(Graph graph, SwingViewer swingViewer) {
+    @Override
+    protected void done() {
+        swingViewer = new SwingViewer(graphLists
+                .get(currentTabIndex)
+                .get(currentGraphIndex), Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
+
+        view = swingViewer.addDefaultView(false);
+
+        JPanel tab =  tabList.stream().findFirst().get();
+        tab.add((Component) view);
+        tab.validate();
+        tab.repaint();
+    }
+
+    private void changeGraph(Graph graph) {
         assert (graph.getNodeCount() == graphLists.get(currentTabIndex).get(currentGraphIndex).getNodeCount());
 
         swingViewer.getGraphicGraph().clear();
 
-        int size = graph.getNodeCount();
-        for (int i = 0; i < size; i++) {
-            Node currentNode = graph.getNode(i);
-            double[] xyz = Toolkit.nodePosition(currentNode);
-            Node changedNode = swingViewer.getGraphicGraph().addNode(currentNode.getId());
-            changedNode.setAttribute("ui.style", currentNode.getAttribute("ui.style"));
-            changedNode.setAttribute("xyz", xyz[0], xyz[1], xyz[2]);
-        }
+        swingViewer.getGraphicGraph().setAttribute("ui.stylesheet",
+                "node {fill-mode: dyn-plain;}" +
+                        "edge {fill-mode: dyn-plain;" +
+                        "text-alignment: under; " +
+                        "text-color: white; " +
+                        "text-style: bold; " +
+                        "text-background-mode: rounded-box; " +
+                        "text-background-color: #222C; " +
+                        "text-padding: 1px; " +
+                        "text-offset: 0px, 2px;}");
 
-        size = graph.getEdgeCount();
-        for (int i = 0; i < size; i++) {
-            Edge currentEdge = graph.getEdge(i);
-            Edge changedEdge = swingViewer.getGraphicGraph().addEdge(currentEdge.getId(), currentEdge.getNode0().getId(), currentEdge.getNode1().getId());
-            changedEdge.setAttribute("ui.style", currentEdge.getAttribute("ui.style"));
-            changedEdge.setAttribute("ui.label", currentEdge.getAttribute("ui.label"));
+        try {
+            int size = graph.getNodeCount();
+            for (int i = 0; i < size; i++) {
+                Node currentNode = graph.getNode(i);
+                double[] xyz = Toolkit.nodePosition(currentNode);
+                Node changedNode = swingViewer.getGraphicGraph().addNode(currentNode.getId());
+                changedNode.setAttribute("ui.style", currentNode.getAttribute("ui.style"));
+                changedNode.setAttribute("xyz", xyz[0], xyz[1], xyz[2]);
+            }
+
+            size = graph.getEdgeCount();
+            for (int i = 0; i < size; i++) {
+                Edge currentEdge = graph.getEdge(i);
+                Edge changedEdge = swingViewer.getGraphicGraph().addEdge(currentEdge.getId(), currentEdge.getNode0().getId(), currentEdge.getNode1().getId());
+                changedEdge.setAttribute("ui.style", currentEdge.getAttribute("ui.style"));
+                changedEdge.setAttribute("ui.label", currentEdge.getAttribute("ui.label"));
+            }
+        } catch (IndexOutOfBoundsException | IdAlreadyInUseException | EdgeRejectedException | ElementNotFoundException e) {
+            System.exit(0);
+            e.printStackTrace();
         }
 
         swingViewer.getGraphicGraph().setAttribute("ui.quality");
         swingViewer.getGraphicGraph().setAttribute("ui.antialias");
+
+        view.getCamera().setAutoFitView(true);
 
         assert (swingViewer.getGraphicGraph().getNodeCount() == graphLists.get(currentTabIndex).get(currentGraphIndex).getNodeCount());
     }

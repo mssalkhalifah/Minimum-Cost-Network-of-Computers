@@ -1,36 +1,41 @@
 package com.project.utility;
 
+import org.graphstream.algorithm.Algorithm;
 import org.graphstream.algorithm.Toolkit;
 import org.graphstream.algorithm.generator.*;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.ElementNotFoundException;
 import org.graphstream.graph.Graph;
 
-import javax.swing.*;
 import java.util.*;
 import java.util.List;
 
-public class GraphGeneratorWorker extends SwingWorker<Void, Void> {
-    private final MyAlgorithm myAlgorithm;
+public class GraphGeneratorWorker implements Algorithm {
+    private double benchmarkResult;
+    private MyAlgorithm myAlgorithm;
     private final Generator GRAPH_GENERATOR;
     private final int NUMBER_OF_VERTICES;
 
     private Graph graph;
 
-    public GraphGeneratorWorker(Graph graph, int numberOfVertices, MyAlgorithm myAlgorithm) {
+    public GraphGeneratorWorker(int numberOfVertices, MyAlgorithm myAlgorithm) {
         this.myAlgorithm = myAlgorithm;
-        this.graph = graph;
         this.NUMBER_OF_VERTICES = numberOfVertices;
 
         GRAPH_GENERATOR = new GridGenerator(true, false, true);
     }
 
-    public Graph getGraph() {
-        return graph;
+    public double getBenchmarkResult() {
+        return benchmarkResult;
     }
 
     @Override
-    protected Void doInBackground() throws Exception {
+    public void init(Graph graph) {
+        this.graph = graph;
+    }
+
+    @Override
+    public void compute() {
         GRAPH_GENERATOR.addSink(graph);
 
         GRAPH_GENERATOR.begin();
@@ -67,25 +72,43 @@ public class GraphGeneratorWorker extends SwingWorker<Void, Void> {
         graph.setAttribute("ui.stylesheet",
                 "node {fill-mode: dyn-plain;}" +
                         "edge {fill-mode: dyn-plain;" +
-                        "size: 8px;}");
+                        "text-alignment: under; " +
+                        "text-color: white; " +
+                        "text-style: bold; " +
+                        "text-background-mode: rounded-box; " +
+                        "text-background-color: #222C; " +
+                        "text-padding: 1px; " +
+                        "text-offset: 0px, 2px;}");
 
         graph.setAttribute("ui.quality");
         graph.setAttribute("ui.antialias");
 
-        myAlgorithm.init(graph);
-        myAlgorithm.compute();
+        double startTime = 0;
+        double endTime = 0;
 
-        List<Edge> mstArrayList = new ArrayList<>(myAlgorithm.getMstResult());
-        int size = mstArrayList.size();
-        for (int i = 0; i < size; i++) {
-            if (mstArrayList.get(i).getId() != myAlgorithm.getSuperComputers().getId()) {
-                mstArrayList.get(i).setAttribute("ui.style", "fill-color: blue;");
+        try {
+            myAlgorithm.init(graph);
+
+            startTime = System.nanoTime();
+            myAlgorithm.compute();
+            endTime = System.nanoTime();
+
+            List<Edge> mstArrayList = new ArrayList<>(myAlgorithm.getMstResult());
+            int size = mstArrayList.size();
+            for (int i = 0; i < size; i++) {
+                if (mstArrayList.get(i).getId() != myAlgorithm.getSuperComputers().getId()) {
+                    mstArrayList.get(i).setAttribute("ui.style", "fill-color: blue; size: 5px;");
+                    mstArrayList.get(i).getNode0().setAttribute("ui.style", "fill-color: black;");
+                    mstArrayList.get(i).getNode1().setAttribute("ui.style", "fill-color: black;");
+                }
             }
+            myAlgorithm.getSuperComputers().setAttribute("ui.style", "fill-color: red; size: 4px;");
+            myAlgorithm.getSuperComputers().setAttribute("weight", myAlgorithm.getOriginalWeight());
+        } catch (ElementNotFoundException e) {
+            e.printStackTrace();
         }
-        myAlgorithm.getSuperComputers().setAttribute("ui.style", "fill-color: red;");
-        myAlgorithm.getSuperComputers().setAttribute("weight", myAlgorithm.getOriginalWeight());
 
-        return null;
+        benchmarkResult = endTime - startTime;
     }
 
     private int getRandomWithExclusion(Random rnd, int start, int end, List<Integer> exclude) {
@@ -172,12 +195,4 @@ public class GraphGeneratorWorker extends SwingWorker<Void, Void> {
                 low[u]  = Math.min(low[u], disc[v]);
         }
     }
-
-    /*@Override
-    protected void process(List<Integer> chunks) {
-        int lastChunkValue = chunks.get(chunks.size() - 1);
-        jProgressBar.setValue(lastChunkValue);
-        double currentProgress = ((double) jProgressBar.getValue()/ NUMBER_OF_VERTICES) * 100;
-        jProgressBar.setString(String.format("%.2f%%", currentProgress));
-    }*/
 }
