@@ -1,9 +1,11 @@
+com/project/utility/GraphGeneratorWorker.java
+ com.project.utility.GraphGeneratorWorker
 com/project/utility/GraphUtil.java
  com.project.utility.GraphUtil
 com/project/utility/MinimumSpanningTreeKruskal.java
  com.project.utility.MinimumSpanningTreeKruskal
-com/project/model/Edge.java
- com.project.model.Edge
+com/project/utility/Algorithms.java
+ com.project.utility.Algorithms
 com/project/utility/MinimumSpanningTreePrim.java
  com.project.utility.MinimumSpanningTreePrim
 com/project/utility/MyAlgorithm.java
@@ -15,16 +17,14 @@ com/project/model/MyGraph.java
  com.project.model.MyGraph
 com/project/model/Subset.java
  com.project.model.Subset
-com/project/utility/Algorithms.java
- com.project.utility.Algorithms
+com/project/model/Edge.java
+ com.project.model.Edge
 com/project/utility/SetUtil.java
  com.project.utility.SetUtil
-com/project/view/ChartResultView.java
- com.project.view.ChartResultView
-com/project/utility/GraphGeneratorWorker.java
- com.project.utility.GraphGeneratorWorker
 com/project/view/MSTResultView.java
  com.project.view.MSTResultView
+com/project/view/ChartResultView.java
+ com.project.view.ChartResultView
 com/project/controller/Application.java
  com.project.controller.Application
 com/project/controller/EntryPoint.java

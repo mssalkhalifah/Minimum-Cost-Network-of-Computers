@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 public class MSTResultView extends SwingWorker<Void, Void> {
     private SwingViewer swingViewer;
@@ -121,36 +122,35 @@ public class MSTResultView extends SwingWorker<Void, Void> {
         return tabbedPane;
     }
 
-    public double[] getResults() {
-        double[] worstResult = new double[maxNumberOfIteration / numberOfVertexPerStep];
+    public List<List<Double>> getResults() {
+        List<List<Double>> runtimeResults = new LinkedList<>();
 
-        for (int i = 0; i < worstResult.length; i++) {
-            double value = 0;
+        for (int i = 0; i < maxNumberOfIteration / numberOfVertexPerStep; i++) {
+            ArrayList<Double> runtimeResult = new ArrayList<>(iterationPerStep);
 
             for (int j = 0; j < iterationPerStep; j++) {
-               value += graphGenerators.get((i * iterationPerStep) + j).getBenchmarkResult() / 1000000;
+               runtimeResult.add(graphGenerators.get((i * iterationPerStep) + j).getBenchmarkResult() / 1000000);
             }
 
-            worstResult[i] = value / iterationPerStep;
+            runtimeResults.add(runtimeResult);
         }
 
-        return worstResult;
+        return runtimeResults;
     }
+
+    private double s;
+    private double e;
 
     @Override
     protected Void doInBackground() throws Exception {
+        s = System.nanoTime();
         try {
-            graphGenerators.forEach(graphGeneratorWorker -> {
-                for (int i = 0; i < maxNumberOfIteration / numberOfVertexPerStep; i++) {
-                    for (int j = 0; j < iterationPerStep; j++) {
-                        graphGenerators
-                                .get((i * iterationPerStep) + j)
-                                .init(graphLists.get(i).get(j));
-                    }
-                }
+            AtomicInteger i = new AtomicInteger();
+            graphLists.stream()
+                    .flatMap(Collection::stream)
+                    .forEach(graph -> graphGenerators.get(i.getAndIncrement()).init(graph));
 
-                graphGeneratorWorker.compute();
-            });
+            graphGenerators.forEach(graphGeneratorWorker -> graphGeneratorWorker.compute());
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
         }
@@ -160,6 +160,9 @@ public class MSTResultView extends SwingWorker<Void, Void> {
 
     @Override
     protected void done() {
+        e = System.nanoTime();
+
+        System.out.println((e - s) / 1000000000);
         swingViewer = new SwingViewer(graphLists
                 .get(currentTabIndex)
                 .get(currentGraphIndex), Viewer.ThreadingModel.GRAPH_IN_GUI_THREAD);
@@ -189,22 +192,20 @@ public class MSTResultView extends SwingWorker<Void, Void> {
                         "text-offset: 0px, 2px;}");
 
         try {
-            int size = graph.getNodeCount();
-            for (int i = 0; i < size; i++) {
-                Node currentNode = graph.getNode(i);
-                double[] xyz = Toolkit.nodePosition(currentNode);
-                Node changedNode = swingViewer.getGraphicGraph().addNode(currentNode.getId());
-                changedNode.setAttribute("ui.style", currentNode.getAttribute("ui.style"));
+            graph.nodes().forEach(node -> {
+                double[] xyz = Toolkit.nodePosition(node);
+                Node changedNode = swingViewer.getGraphicGraph().addNode(node.getId());
+                changedNode.setAttribute("ui.style", node.getAttribute("ui.style"));
                 changedNode.setAttribute("xyz", xyz[0], xyz[1], xyz[2]);
-            }
+            });
 
-            size = graph.getEdgeCount();
-            for (int i = 0; i < size; i++) {
-                Edge currentEdge = graph.getEdge(i);
-                Edge changedEdge = swingViewer.getGraphicGraph().addEdge(currentEdge.getId(), currentEdge.getNode0().getId(), currentEdge.getNode1().getId());
-                changedEdge.setAttribute("ui.style", currentEdge.getAttribute("ui.style"));
-                changedEdge.setAttribute("ui.label", currentEdge.getAttribute("ui.label"));
-            }
+            graph.edges().forEach(edge -> {
+                Edge changedEdge = swingViewer
+                        .getGraphicGraph()
+                        .addEdge(edge.getId(), edge.getNode0().getId(), edge.getNode1().getId());
+                changedEdge.setAttribute("ui.style", edge.getAttribute("ui.style"));
+                changedEdge.setAttribute("ui.label", edge.getAttribute("ui.label"));
+            });
         } catch (IndexOutOfBoundsException | IdAlreadyInUseException | EdgeRejectedException | ElementNotFoundException e) {
             System.exit(0);
             e.printStackTrace();

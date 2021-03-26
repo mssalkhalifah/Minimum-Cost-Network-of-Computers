@@ -1,9 +1,7 @@
 package com.project.utility;
 
-import com.project.model.MyGraph;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
-import org.graphstream.graph.Node;
 import org.jheaps.AddressableHeap;
 import org.jheaps.tree.FibonacciHeap;
 
@@ -11,7 +9,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MinimumSpanningTreePrim extends MyAlgorithm {
-    private MyGraph myGraph;
     private List<Edge> edgeList;
 
     @Override
@@ -21,13 +18,11 @@ public class MinimumSpanningTreePrim extends MyAlgorithm {
         Random random = new Random();
         mstResult = new LinkedList<>();
 
-        edgeList = new ArrayList<>(graph.edges().collect(Collectors.toList()));
+        edgeList = graph.edges().collect(Collectors.toList());
 
         int minWeight = 1;
         int maxWeight = 500;
-        int size = edgeList.size();
-        for (int i = 0; i < size; i++) {
-            Edge edge = edgeList.get(i);
+        for (Edge edge : edgeList) {
             int weight = minWeight + random.nextInt(maxWeight);
             edge.setAttribute("weight", weight);
             edge.setAttribute("ui.label", weight);
@@ -41,14 +36,6 @@ public class MinimumSpanningTreePrim extends MyAlgorithm {
         superComputers.setAttribute("weight", 0);
         superComputers.getNode0().setAttribute("ui.style", "fill-color: red;");
         superComputers.getNode1().setAttribute("ui.style", "fill-color: red;");
-
-        myGraph = new MyGraph(graph.getNodeCount());
-        graph.edges().forEach(edge -> {
-            int src = edge.getSourceNode().getIndex();
-            int dst = edge.getTargetNode().getIndex();
-            int w = (int) edge.getAttribute("weight");
-            myGraph.addEdge(src, dst, w);
-        });
     }
 
     @Override

@@ -52,7 +52,7 @@ public class GraphGeneratorWorker implements Algorithm {
                     int randomNode = getRandomWithExclusion(
                             random,
                             0,
-                            graph.getNodeCount(),
+                            graph.getNodeCount() - 1,
                             findArticulationPoints(graph));
 
                     if (graph.getNode(randomNode) != null) {
@@ -62,12 +62,12 @@ public class GraphGeneratorWorker implements Algorithm {
                     }
                 }
             }
-        } catch (ElementNotFoundException e) {
+        } catch (ElementNotFoundException | IndexOutOfBoundsException e) {
             e.printStackTrace();
         }
 
-        assert (graph.getNodeCount() == NUMBER_OF_VERTICES);
-        assert (Toolkit.isConnected(graph));
+        assert graph.getNodeCount() == NUMBER_OF_VERTICES : String.format("|V|=%d expected=%d", graph.getNodeCount(), NUMBER_OF_VERTICES);
+        assert Toolkit.isConnected(graph) : "Graph not connected";
 
         graph.setAttribute("ui.stylesheet",
                 "node {fill-mode: dyn-plain;}" +
@@ -87,7 +87,9 @@ public class GraphGeneratorWorker implements Algorithm {
         double endTime = 0;
 
         try {
-            myAlgorithm.init(graph);
+            for (int i = 0; i < 100; i++) {
+                myAlgorithm.init(graph);
+            }
 
             startTime = System.nanoTime();
             myAlgorithm.compute();

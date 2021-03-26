@@ -1,13 +1,8 @@
 package com.project.controller;
 
-import com.project.utility.GraphGeneratorWorker;
 import com.project.utility.MyAlgorithm;
+import com.project.view.ChartResultView;
 import com.project.view.MSTResultView;
-import org.graphstream.algorithm.measure.ChartMeasure;
-import org.graphstream.algorithm.measure.ChartSeries1DMeasure;
-import org.graphstream.ui.swing_viewer.SwingViewer;
-import org.graphstream.ui.view.View;
-import org.graphstream.ui.view.Viewer;
 import org.knowm.xchart.XChartPanel;
 import org.knowm.xchart.XYChart;
 import org.knowm.xchart.XYChartBuilder;
@@ -16,17 +11,13 @@ import org.knowm.xchart.style.Styler;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
 
 public class Application extends JFrame implements Runnable {
-    public static SwingViewer swingViewer;
-    public static View view;
-
     private MSTResultView kruskalResultView;
     private MSTResultView primResultView;
+    private ChartResultView chartResultView;
 
     private JTabbedPane resultTabbedPane;
     private JPanel kruskalTab;
@@ -34,13 +25,10 @@ public class Application extends JFrame implements Runnable {
     private JPanel graphPanel;
     private JPanel primGraphPanel;
     private JPanel topPanel;
-    private JPanel chartPanel;
 
     private JTextField numberOfNodesPerStepTextField;
     private JTextField numberOfStepsTextField;
     private JTextField iterationsPerStepTextField;
-
-    private JLabel numberOfEdgesLabel;
 
     private JButton generateButton;
     private JButton clearButton;
@@ -74,9 +62,10 @@ public class Application extends JFrame implements Runnable {
 
         this.getContentPane().add(resultTabbedPane);
 
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 10000; i++) {
             kruskalResultView = new MSTResultView(graphPanel, MyAlgorithm.algorithms.KRUSKAL);
             primResultView = new MSTResultView(primGraphPanel, MyAlgorithm.algorithms.PRIM);
+            chartResultView = new ChartResultView(resultTabbedPane);
         }
 
         graphPanel.add(kruskalResultView.getTabbedPane());
@@ -136,7 +125,7 @@ public class Application extends JFrame implements Runnable {
         generateButton = new JButton("Generate");
         generateButton.setPreferredSize(dimension);
 
-        generateButton.addActionListener(e -> {
+        generateButton.addActionListener(event -> {
             if (!built) {
                 int numberOfVertexPerStep = Integer.parseInt(numberOfNodesPerStepTextField.getText());
                 int maxNumberOfIteration = Integer.parseInt(numberOfStepsTextField.getText()) * numberOfVertexPerStep;
@@ -146,45 +135,35 @@ public class Application extends JFrame implements Runnable {
                 primResultView.init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
 
                 kruskalResultView.execute();
-                primResultView.execute();
 
                 try {
                     kruskalResultView.get();
-                    primResultView.get();
                 } catch (InterruptedException interruptedException) {
                     interruptedException.printStackTrace();
                 } catch (ExecutionException executionException) {
                     executionException.printStackTrace();
                 }
 
-                XYChart chart = new XYChartBuilder()
-                        .width(500)
-                        .height(500)
-                        .title("Average runtime")
-                        .xAxisTitle("Number of vertices")
-                        .yAxisTitle("Time unit: ms")
-                        .build();
-
-                chart.getStyler().setLegendPosition(Styler.LegendPosition.InsideNE);
-                chart.getStyler().setDefaultSeriesRenderStyle(XYSeries.XYSeriesRenderStyle.Line);
-
-                double[] kruskalWorstResults = kruskalResultView.getResults();
-                double[] primWorstResults = primResultView.getResults();
-
-                double[] chartNodesX = new double[maxNumberOfIteration / numberOfVertexPerStep];
-                for (int i = 0; i < chartNodesX.length; i++) {
-                    chartNodesX[i] = numberOfVertexPerStep * (i + 1);
+                if (kruskalResultView.isDone()) {
+                    primResultView.execute();
+                    System.out.println("Kruskal done!");
+                    try {
+                        primResultView.get();
+                    } catch (InterruptedException interruptedException) {
+                        interruptedException.printStackTrace();
+                    } catch (ExecutionException executionException) {
+                        executionException.printStackTrace();
+                    }
                 }
 
-                chart.addSeries("kruskal", chartNodesX, kruskalWorstResults);
-                chart.addSeries("prim", chartNodesX, primWorstResults);
-
-                chartPanel = new XChartPanel<>(chart);
-
-                resultTabbedPane.addTab("Result", chartPanel);
-
-                resultTabbedPane.validate();
-                resultTabbedPane.repaint();
+                try {
+                    chartResultView.draw(kruskalResultView.getResults(),
+                            primResultView.getResults(),
+                            maxNumberOfIteration,
+                            numberOfVertexPerStep);
+                } catch (NoSuchElementException e) {
+                    e.printStackTrace();
+                }
 
                 this.validate();
                 this.repaint();
