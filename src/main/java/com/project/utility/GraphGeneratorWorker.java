@@ -3,7 +3,6 @@ package com.project.utility;
 import org.graphstream.algorithm.Algorithm;
 import org.graphstream.algorithm.Toolkit;
 import org.graphstream.algorithm.generator.*;
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.ElementNotFoundException;
 import org.graphstream.graph.Graph;
 
@@ -11,22 +10,15 @@ import java.util.*;
 import java.util.List;
 
 public class GraphGeneratorWorker implements Algorithm {
-    private double benchmarkResult;
-    private MyAlgorithm myAlgorithm;
     private final Generator GRAPH_GENERATOR;
     private final int NUMBER_OF_VERTICES;
 
     private Graph graph;
 
-    public GraphGeneratorWorker(int numberOfVertices, MyAlgorithm myAlgorithm) {
-        this.myAlgorithm = myAlgorithm;
+    public GraphGeneratorWorker(int numberOfVertices) {
         this.NUMBER_OF_VERTICES = numberOfVertices;
 
         GRAPH_GENERATOR = new GridGenerator(true, false, true);
-    }
-
-    public double getBenchmarkResult() {
-        return benchmarkResult;
     }
 
     @Override
@@ -82,35 +74,6 @@ public class GraphGeneratorWorker implements Algorithm {
 
         graph.setAttribute("ui.quality");
         graph.setAttribute("ui.antialias");
-
-        double startTime = 0;
-        double endTime = 0;
-
-        try {
-            for (int i = 0; i < 100; i++) {
-                myAlgorithm.init(graph);
-            }
-
-            startTime = System.nanoTime();
-            myAlgorithm.compute();
-            endTime = System.nanoTime();
-
-            List<Edge> mstArrayList = new ArrayList<>(myAlgorithm.getMstResult());
-            int size = mstArrayList.size();
-            for (int i = 0; i < size; i++) {
-                if (mstArrayList.get(i).getId() != myAlgorithm.getSuperComputers().getId()) {
-                    mstArrayList.get(i).setAttribute("ui.style", "fill-color: blue; size: 5px;");
-                    mstArrayList.get(i).getNode0().setAttribute("ui.style", "fill-color: black;");
-                    mstArrayList.get(i).getNode1().setAttribute("ui.style", "fill-color: black;");
-                }
-            }
-            myAlgorithm.getSuperComputers().setAttribute("ui.style", "fill-color: red; size: 4px;");
-            myAlgorithm.getSuperComputers().setAttribute("weight", myAlgorithm.getOriginalWeight());
-        } catch (ElementNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        benchmarkResult = endTime - startTime;
     }
 
     private int getRandomWithExclusion(Random rnd, int start, int end, List<Integer> exclude) {
@@ -155,7 +118,7 @@ public class GraphGeneratorWorker implements Algorithm {
 
     private int time = 0;
 
-    void APUtil(int u, boolean visited[], int disc[],
+    private void APUtil(int u, boolean visited[], int disc[],
                 int low[], int parent[], boolean ap[], Graph graph) {
         int children = 0;
 
@@ -182,6 +145,7 @@ public class GraphGeneratorWorker implements Algorithm {
             {
                 children++;
                 parent[v] = u;
+
                 APUtil(v, visited, disc, low, parent, ap, graph);
 
                 low[u]  = Math.min(low[u], low[v]);

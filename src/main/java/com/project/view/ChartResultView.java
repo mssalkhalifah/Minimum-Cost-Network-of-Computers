@@ -1,15 +1,31 @@
 package com.project.view;
 
-import org.knowm.xchart.XChartPanel;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.block.BlockBorder;
+import org.jfree.chart.labels.StandardXYItemLabelGenerator;
+import org.jfree.chart.labels.XYItemLabelGenerator;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
+import java.awt.*;
+import java.text.NumberFormat;
 import java.util.*;
+import java.util.List;
 
 public class ChartResultView {
     private final JTabbedPane resultTabbedPane;
     private final JTabbedPane chartResultsTabbedPane;
+
+    private enum dataCompareTypes {
+        MIN, MAX, AVERAGE, ALL
+    }
 
     public ChartResultView(JTabbedPane resultTabbedPane) {
         this.resultTabbedPane = resultTabbedPane;
@@ -21,65 +37,108 @@ public class ChartResultView {
                      List<List<Double>> primRuntimeResults,
                      int maxNumberOfVectors,
                      int numberOfVectorsPerStep) throws NoSuchElementException {
-        XChartPanel<XYChart> bestResult = new XChartPanel<>(new XYChartBuilder()
-                .xAxisTitle("Number of vertices")
-                .yAxisTitle("Time unit: ms")
-                .title("Best Runtime")
-                .build());
 
-        XChartPanel<XYChart> worstResult = new XChartPanel<>(new XYChartBuilder()
-                .xAxisTitle("Number of vertices")
-                .yAxisTitle("Time unit: ms")
-                .title("Worst Runtime")
-                .build());
+        XYDataset bestDataset = createDataset(kruskalRuntimeResults, primRuntimeResults, numberOfVectorsPerStep, dataCompareTypes.MIN);
+        XYDataset worstDataset = createDataset(kruskalRuntimeResults, primRuntimeResults, numberOfVectorsPerStep, dataCompareTypes.MAX);
+        XYDataset averageDataset = createDataset(kruskalRuntimeResults, primRuntimeResults, numberOfVectorsPerStep, dataCompareTypes.AVERAGE);
 
-        XChartPanel<XYChart> averageResult = new XChartPanel<>(new XYChartBuilder()
-                .xAxisTitle("Number of vertices")
-                .yAxisTitle("Time unit: ms")
-                .title("Average Runtime")
-                .build());
+        JFreeChart bestRuntimeChart = createChart(bestDataset, "Best Runtimes");
+        JFreeChart worstRuntimeChart = createChart(worstDataset, "Worst Runtimes");
+        JFreeChart averageRuntimeChart = createChart(averageDataset, "Average Runtimes");
 
-        double[] chartNodesX = new double[maxNumberOfVectors / numberOfVectorsPerStep];
-        for (int i = 0; i < chartNodesX.length; i++) {
-            chartNodesX[i] = numberOfVectorsPerStep * (i + 1);
-        }
-
-        double[] kruskalBestResult = kruskalRuntimeResults.stream()
-                .mapToDouble(x -> x.stream().min(Double::compare).orElseThrow())
-                .toArray();
-
-        double[] kruskalWorstResult = kruskalRuntimeResults.stream()
-                .mapToDouble(x -> x.stream().max(Double::compare).orElseThrow())
-                .toArray();
-
-        double[] kruskalAverageResult = kruskalRuntimeResults.stream()
-                .mapToDouble(x -> x.stream().mapToDouble(y -> y).average().orElseThrow())
-                .toArray();
-
-        bestResult.getChart().addSeries("Kruskal", chartNodesX, kruskalBestResult);
-        worstResult.getChart().addSeries("Kruskal", chartNodesX, kruskalWorstResult);
-        averageResult.getChart().addSeries("Kruskal", chartNodesX, kruskalAverageResult);
-
-        double[] primeBestResult = primRuntimeResults.stream()
-                .mapToDouble(x -> x.stream().min(Double::compare).orElseThrow())
-                .toArray();
-
-        double[] primeWorstResult = primRuntimeResults.stream()
-                .mapToDouble(x -> x.stream().max(Double::compare).orElseThrow())
-                .toArray();
-
-        double[] primeAverageResult = primRuntimeResults.stream()
-                .mapToDouble(x -> x.stream().mapToDouble(y -> y).average().orElseThrow())
-                .toArray();
-
-        bestResult.getChart().addSeries("Prime", chartNodesX, primeBestResult);
-        worstResult.getChart().addSeries("Prime", chartNodesX, primeWorstResult);
-        averageResult.getChart().addSeries("Prime", chartNodesX, primeAverageResult);
-
-        chartResultsTabbedPane.addTab("Best runtime results", bestResult);
-        chartResultsTabbedPane.addTab("Worst runtime results", worstResult);
-        chartResultsTabbedPane.addTab("Average runtime results", averageResult);
+        chartResultsTabbedPane.addTab("Best Results", new ChartPanel(bestRuntimeChart));
+        chartResultsTabbedPane.addTab("Worst Results", new ChartPanel(worstRuntimeChart));
+        chartResultsTabbedPane.addTab("Average Results", new ChartPanel(averageRuntimeChart));
 
         resultTabbedPane.add("Results", chartResultsTabbedPane);
+    }
+
+    private JFreeChart createChart(XYDataset dataset, String title) {
+        JFreeChart chart = ChartFactory.createXYLineChart(
+                title,
+                "Number of vertices",
+                "Runtime in milliseconds",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
+        );
+
+        XYPlot plot = chart.getXYPlot();
+
+        XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        renderer.setSeriesPaint(0, Color.RED);
+        renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+
+        NumberFormat format = NumberFormat.getNumberInstance();
+        format.setMaximumFractionDigits(4);
+        XYItemLabelGenerator generator =
+                new StandardXYItemLabelGenerator("|V|={1},T={2}ms", format, format);
+        renderer.setDefaultItemLabelGenerator(generator);
+        renderer.setDefaultItemLabelsVisible(true);
+
+        plot.setRenderer(renderer);
+        plot.setBackgroundPaint(Color.white);
+
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.BLACK);
+
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.BLACK);
+
+        chart.getLegend().setFrame(BlockBorder.NONE);
+
+        return chart;
+    }
+
+    private XYDataset createDataset(List<List<Double>> kruskalDataList,
+                                    List<List<Double>> primDataList,
+                                    int numberOfXPointsPerStep,
+                                    dataCompareTypes dataCompareType) {
+        XYSeries kruskalSeries = new XYSeries("Kruskal");
+        XYSeries primeSeries = new XYSeries("Prim");
+
+        double[] kruskalData = null;
+        double[] primData = null;
+
+        switch (dataCompareType) {
+            case MIN -> {
+                kruskalData = kruskalDataList.stream()
+                        .mapToDouble(x -> x.stream().min(Double::compare).orElseThrow())
+                        .toArray();
+                primData = primDataList.stream()
+                        .mapToDouble(x -> x.stream().min(Double::compare).orElseThrow())
+                        .toArray();
+            }
+            case MAX -> {
+                kruskalData = kruskalDataList.stream()
+                        .mapToDouble(x -> x.stream().max(Double::compare).orElseThrow())
+                        .toArray();
+                primData = primDataList.stream()
+                        .mapToDouble(x -> x.stream().max(Double::compare).orElseThrow())
+                        .toArray();
+            }
+            case AVERAGE -> {
+                kruskalData = kruskalDataList.stream()
+                        .mapToDouble(x -> x.stream().mapToDouble(y -> y).average().orElseThrow())
+                        .toArray();
+                primData = primDataList.stream()
+                        .mapToDouble(x -> x.stream().mapToDouble(y -> y).average().orElseThrow())
+                        .toArray();
+            }
+        }
+
+        for (int i = 0; i < Objects.requireNonNull(kruskalData).length; i++) {
+            kruskalSeries.add((i + 1) * numberOfXPointsPerStep, kruskalData[i]);
+            assert primData != null;
+            primeSeries.add((i + 1) * numberOfXPointsPerStep, primData[i]);
+        }
+
+        XYSeriesCollection xyDataset = new XYSeriesCollection();
+        xyDataset.addSeries(kruskalSeries);
+        xyDataset.addSeries(primeSeries);
+
+        return xyDataset;
     }
 }

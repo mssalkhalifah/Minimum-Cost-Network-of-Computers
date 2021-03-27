@@ -1,8 +1,6 @@
 package com.project.view;
 
 import com.project.utility.GraphGeneratorWorker;
-import com.project.utility.MinimumSpanningTreeKruskal;
-import com.project.utility.MinimumSpanningTreePrim;
 import com.project.utility.MyAlgorithm;
 import org.graphstream.algorithm.Toolkit;
 import org.graphstream.graph.*;
@@ -15,9 +13,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 public class MSTResultView extends SwingWorker<Void, Void> {
     private SwingViewer swingViewer;
@@ -30,7 +26,6 @@ public class MSTResultView extends SwingWorker<Void, Void> {
 
     private int currentGraphIndex;
     private int currentTabIndex;
-    private int numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep;
 
     private List<JPanel> tabList;
     private List<GraphGeneratorWorker> graphGenerators;
@@ -45,10 +40,6 @@ public class MSTResultView extends SwingWorker<Void, Void> {
     }
 
     public void init(int numberOfVertexPerStep, int maxNumberOfIteration, int iterationPerStep) {
-        this.numberOfVertexPerStep = numberOfVertexPerStep;
-        this.maxNumberOfIteration = maxNumberOfIteration;
-        this.iterationPerStep = iterationPerStep;
-
         currentGraphIndex = 0;
         currentTabIndex = 0;
 
@@ -108,11 +99,7 @@ public class MSTResultView extends SwingWorker<Void, Void> {
             for (int j = 0; j < iterationPerStep; j++) {
                 Graph graph = new SingleGraph(String.valueOf((i + 1) * numberOfVertexPerStep));
                 graphList.add(graph);
-                graphGenerators.add(new GraphGeneratorWorker(
-                        (i + 1) * numberOfVertexPerStep,
-                        (algorithm == MyAlgorithm.algorithms.KRUSKAL
-                                ? new MinimumSpanningTreeKruskal()
-                                : new MinimumSpanningTreePrim())));
+                graphGenerators.add(new GraphGeneratorWorker((i + 1) * numberOfVertexPerStep));
             }
             i++;
         }
@@ -122,20 +109,16 @@ public class MSTResultView extends SwingWorker<Void, Void> {
         return tabbedPane;
     }
 
-    public List<List<Double>> getResults() {
-        List<List<Double>> runtimeResults = new LinkedList<>();
+    public List<List<Graph>> getGraphLists() {
+        return graphLists;
+    }
 
-        for (int i = 0; i < maxNumberOfIteration / numberOfVertexPerStep; i++) {
-            ArrayList<Double> runtimeResult = new ArrayList<>(iterationPerStep);
+    public MyAlgorithm.algorithms getAlgorithm() {
+        return algorithm;
+    }
 
-            for (int j = 0; j < iterationPerStep; j++) {
-               runtimeResult.add(graphGenerators.get((i * iterationPerStep) + j).getBenchmarkResult() / 1000000);
-            }
-
-            runtimeResults.add(runtimeResult);
-        }
-
-        return runtimeResults;
+    public SwingViewer getSwingViewer() {
+        return swingViewer;
     }
 
     private double s;

@@ -24,6 +24,7 @@ dependencies {
     compile "org.graphstream:gs-ui-swing:2.0"
     compile "org.graphstream:gs-algo:2.0"
     compile "org.knowm.xchart:xchart:3.8.0"
+    compile "org.jfree:jfreechart:1.5.3"
 }
 
 test {

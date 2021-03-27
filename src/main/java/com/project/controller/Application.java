@@ -1,17 +1,14 @@
 package com.project.controller;
 
+import com.project.utility.GraphBenchmarkWorker;
 import com.project.utility.MyAlgorithm;
 import com.project.view.ChartResultView;
 import com.project.view.MSTResultView;
-import org.knowm.xchart.XChartPanel;
-import org.knowm.xchart.XYChart;
-import org.knowm.xchart.XYChartBuilder;
-import org.knowm.xchart.XYSeries;
-import org.knowm.xchart.style.Styler;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.NoSuchElementException;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class Application extends JFrame implements Runnable {
@@ -22,7 +19,7 @@ public class Application extends JFrame implements Runnable {
     private JTabbedPane resultTabbedPane;
     private JPanel kruskalTab;
     private JPanel primTab;
-    private JPanel graphPanel;
+    private JPanel kruskalGraphPanel;
     private JPanel primGraphPanel;
     private JPanel topPanel;
 
@@ -35,6 +32,7 @@ public class Application extends JFrame implements Runnable {
     private JButton runButton;
 
     private boolean built;
+    private int numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep;
 
     @Override
     public void run() {
@@ -44,11 +42,11 @@ public class Application extends JFrame implements Runnable {
         this.setPreferredSize(new Dimension(1280, 720));
 
         initLeftPane(this);
-        initGraphPanel();
+        //initGraphPanel();
 
         resultTabbedPane = new JTabbedPane();
 
-        kruskalTab = new JPanel();
+        /*kruskalTab = new JPanel();
         primTab = new JPanel();
 
         kruskalTab.setLayout(new GridLayout());
@@ -57,19 +55,17 @@ public class Application extends JFrame implements Runnable {
         resultTabbedPane.addTab("Kruskal", kruskalTab);
         resultTabbedPane.addTab("Prim", primTab);
 
-        kruskalTab.add(graphPanel);
-        primTab.add(primGraphPanel);
+        kruskalTab.add(kruskalGraphPanel);
+        primTab.add(primGraphPanel);*/
 
         this.getContentPane().add(resultTabbedPane);
 
-        for (int i = 0; i < 10000; i++) {
-            kruskalResultView = new MSTResultView(graphPanel, MyAlgorithm.algorithms.KRUSKAL);
-            primResultView = new MSTResultView(primGraphPanel, MyAlgorithm.algorithms.PRIM);
-            chartResultView = new ChartResultView(resultTabbedPane);
-        }
+        //kruskalResultView = new MSTResultView(kruskalGraphPanel, MyAlgorithm.algorithms.KRUSKAL);
+        //primResultView = new MSTResultView(primGraphPanel, MyAlgorithm.algorithms.PRIM);
+        //chartResultView = new ChartResultView(resultTabbedPane);
 
-        graphPanel.add(kruskalResultView.getTabbedPane());
-        primGraphPanel.add(primResultView.getTabbedPane());
+        //kruskalGraphPanel.add(kruskalResultView.getTabbedPane());
+        //primGraphPanel.add(primResultView.getTabbedPane());
 
         this.setSize(this.getPreferredSize());
         this.pack();
@@ -110,9 +106,9 @@ public class Application extends JFrame implements Runnable {
     }
 
     private void initGraphPanel() {
-        graphPanel = new JPanel();
-        graphPanel.setLayout(new GridLayout());
-        graphPanel.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
+        kruskalGraphPanel = new JPanel();
+        kruskalGraphPanel.setLayout(new GridLayout());
+        kruskalGraphPanel.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
 
         primGraphPanel = new JPanel();
         primGraphPanel.setLayout(new GridLayout());
@@ -127,9 +123,34 @@ public class Application extends JFrame implements Runnable {
 
         generateButton.addActionListener(event -> {
             if (!built) {
-                int numberOfVertexPerStep = Integer.parseInt(numberOfNodesPerStepTextField.getText());
-                int maxNumberOfIteration = Integer.parseInt(numberOfStepsTextField.getText()) * numberOfVertexPerStep;
-                int iterationPerStep = Integer.parseInt(iterationsPerStepTextField.getText());
+                generateButton.setEnabled(false);
+                clearButton.setEnabled(true);
+                runButton.setEnabled(true);
+
+                initGraphPanel();
+
+                kruskalTab = new JPanel();
+                primTab = new JPanel();
+
+                kruskalTab.setLayout(new GridLayout());
+                primTab.setLayout(new GridLayout());
+
+                resultTabbedPane.addTab("Kruskal", kruskalTab);
+                resultTabbedPane.addTab("Prim", primTab);
+
+                kruskalTab.add(kruskalGraphPanel);
+                primTab.add(primGraphPanel);
+
+                kruskalResultView = new MSTResultView(kruskalGraphPanel, MyAlgorithm.algorithms.KRUSKAL);
+                primResultView = new MSTResultView(primGraphPanel, MyAlgorithm.algorithms.PRIM);
+                chartResultView = new ChartResultView(resultTabbedPane);
+
+                kruskalGraphPanel.add(kruskalResultView.getTabbedPane());
+                primGraphPanel.add(primResultView.getTabbedPane());
+
+                this.numberOfVertexPerStep = Integer.parseInt(numberOfNodesPerStepTextField.getText());
+                this.maxNumberOfIteration = Integer.parseInt(numberOfStepsTextField.getText()) * numberOfVertexPerStep;
+                this.iterationPerStep = Integer.parseInt(iterationsPerStepTextField.getText());
 
                 kruskalResultView.init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
                 primResultView.init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
@@ -156,18 +177,6 @@ public class Application extends JFrame implements Runnable {
                     }
                 }
 
-                try {
-                    chartResultView.draw(kruskalResultView.getResults(),
-                            primResultView.getResults(),
-                            maxNumberOfIteration,
-                            numberOfVertexPerStep);
-                } catch (NoSuchElementException e) {
-                    e.printStackTrace();
-                }
-
-                this.validate();
-                this.repaint();
-
                 built = true;
             }
         });
@@ -175,7 +184,62 @@ public class Application extends JFrame implements Runnable {
         clearButton = new JButton("Clear");
         clearButton.setPreferredSize(dimension);
 
+        clearButton.addActionListener(event -> {
+            generateButton.setEnabled(true);
+            clearButton.setEnabled(false);
+            runButton.setEnabled(false);
+
+            kruskalResultView.getGraphLists().stream()
+                    .flatMap(Collection::parallelStream)
+                    .forEach(graph -> graph.clear());
+
+            primResultView.getGraphLists().stream()
+                    .flatMap(Collection::parallelStream)
+                    .forEach(graph -> graph.clear());
+
+            kruskalResultView.getSwingViewer().getGraphicGraph().clear();
+            primResultView.getSwingViewer().getGraphicGraph().clear();
+
+            resultTabbedPane.removeAll();
+
+            built = false;
+        });
+
         runButton = new JButton("Run");
         runButton.setPreferredSize(dimension);
+
+        runButton.addActionListener(event -> {
+            generateButton.setEnabled(false);
+            clearButton.setEnabled(true);
+            runButton.setEnabled(false);
+
+            try {
+                GraphBenchmarkWorker graphBenchmarkWorker = new GraphBenchmarkWorker();
+
+                graphBenchmarkWorker.init(kruskalResultView.getGraphLists(), kruskalResultView.getAlgorithm());
+                graphBenchmarkWorker.compute();
+
+                List<List<Double>> kruskalResults = graphBenchmarkWorker.getBenchmarkLists();
+
+                graphBenchmarkWorker.init(primResultView.getGraphLists(), primResultView.getAlgorithm());
+                graphBenchmarkWorker.compute();
+
+                List<List<Double>> primResults = graphBenchmarkWorker.getBenchmarkLists();
+
+                chartResultView.draw(
+                        kruskalResults,
+                        primResults,
+                        maxNumberOfIteration,
+                        numberOfVertexPerStep);
+
+                this.validate();
+                this.repaint();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        clearButton.setEnabled(false);
+        runButton.setEnabled(false);
     }
 }
