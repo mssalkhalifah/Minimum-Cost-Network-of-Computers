@@ -12,8 +12,6 @@ public class GraphBenchmarkWorker {
 
     private MyAlgorithm.algorithms algorithms;
 
-    private MyAlgorithm myAlgorithm;
-
     public void init(List<List<Graph>> graphList, MyAlgorithm.algorithms algorithms) {
         this.graphLists = graphList;
         this.algorithms = algorithms;

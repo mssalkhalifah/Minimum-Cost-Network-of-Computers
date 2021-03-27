@@ -7,7 +7,6 @@ import org.graphstream.graph.ElementNotFoundException;
 import org.graphstream.graph.Graph;
 
 import java.util.*;
-import java.util.List;
 
 public class GraphGeneratorWorker implements Algorithm {
     private final Generator GRAPH_GENERATOR;
@@ -43,7 +42,6 @@ public class GraphGeneratorWorker implements Algorithm {
                 for (int i = 0; i < numberOfRemoveIteration; i++) {
                     int randomNode = getRandomWithExclusion(
                             random,
-                            0,
                             graph.getNodeCount() - 1,
                             findArticulationPoints(graph));
 
@@ -76,8 +74,8 @@ public class GraphGeneratorWorker implements Algorithm {
         graph.setAttribute("ui.antialias");
     }
 
-    private int getRandomWithExclusion(Random rnd, int start, int end, List<Integer> exclude) {
-        int random = start + rnd.nextInt(end - start + 1 - exclude.size());
+    private int getRandomWithExclusion(Random rnd, int end, List<Integer> exclude) {
+        int random = rnd.nextInt(end + 1 - exclude.size());
         for (int ex : exclude) {
             if (random < ex) {
                 break;
@@ -91,10 +89,10 @@ public class GraphGeneratorWorker implements Algorithm {
         final int V = graph.getNodeCount();
         List<Integer> articulationPoints = new LinkedList<>();
         boolean[] visited = new boolean[V];
-        int disc[] = new int[V];
-        int low[] = new int[V];
-        int parent[] = new int[V];
-        boolean ap[] = new boolean[V];
+        int[] disc = new int[V];
+        int[] low = new int[V];
+        int[] parent = new int[V];
+        boolean[] ap = new boolean[V];
 
         for (int i = 0; i < V; i++)
         {
@@ -104,11 +102,11 @@ public class GraphGeneratorWorker implements Algorithm {
         }
 
         for (int i = 0; i < V; i++)
-            if (visited[i] == false)
+            if (!visited[i])
                 APUtil(i, visited, disc, low, parent, ap, graph);
 
         for (int i = 0; i < V; i++) {
-            if (ap[i] == true) {
+            if (ap[i]) {
                 articulationPoints.add(i);
             }
         }
@@ -118,8 +116,8 @@ public class GraphGeneratorWorker implements Algorithm {
 
     private int time = 0;
 
-    private void APUtil(int u, boolean visited[], int disc[],
-                int low[], int parent[], boolean ap[], Graph graph) {
+    private void APUtil(int u, boolean[] visited, int[] disc,
+                        int[] low, int[] parent, boolean[] ap, Graph graph) {
         int children = 0;
 
         visited[u] = true;
@@ -136,29 +134,22 @@ public class GraphGeneratorWorker implements Algorithm {
             }
         });
 
-        Iterator<Integer> i = adjNodes.iterator();
-        while (i.hasNext())
-        {
-            int v = i.next();
-
-            if (!visited[v])
-            {
+        for (int v : adjNodes) {
+            if (!visited[v]) {
                 children++;
                 parent[v] = u;
 
                 APUtil(v, visited, disc, low, parent, ap, graph);
 
-                low[u]  = Math.min(low[u], low[v]);
+                low[u] = Math.min(low[u], low[v]);
 
                 if (parent[u] == -1 && children > 1)
                     ap[u] = true;
 
                 if (parent[u] != -1 && low[v] >= disc[u])
                     ap[u] = true;
-            }
-
-            else if (v != parent[u])
-                low[u]  = Math.min(low[u], disc[v]);
+            } else if (v != parent[u])
+                low[u] = Math.min(low[u], disc[v]);
         }
     }
 }

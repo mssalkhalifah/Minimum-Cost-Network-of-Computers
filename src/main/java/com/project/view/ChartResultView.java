@@ -35,7 +35,6 @@ public class ChartResultView {
 
     public void draw(List<List<Double>> kruskalRuntimeResults,
                      List<List<Double>> primRuntimeResults,
-                     int maxNumberOfVectors,
                      int numberOfVectorsPerStep) throws NoSuchElementException {
 
         XYDataset bestDataset = createDataset(kruskalRuntimeResults, primRuntimeResults, numberOfVectorsPerStep, dataCompareTypes.MIN);

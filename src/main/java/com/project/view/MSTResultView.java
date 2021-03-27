@@ -19,16 +19,16 @@ public class MSTResultView extends SwingWorker<Void, Void> {
     private SwingViewer swingViewer;
     private View view;
 
-    private MyAlgorithm.algorithms algorithm;
+    private final MyAlgorithm.algorithms algorithm;
 
-    private JTabbedPane tabbedPane;
-    private JPanel graphPanel;
+    private final JTabbedPane tabbedPane;
+    private final JPanel graphPanel;
 
     private int currentGraphIndex;
     private int currentTabIndex;
 
     private List<JPanel> tabList;
-    private List<GraphGeneratorWorker> graphGenerators;
+    private final List<GraphGeneratorWorker> graphGenerators;
     private List<List<Graph>> graphLists;
 
     public MSTResultView(JPanel graphPanel, MyAlgorithm.algorithms algorithm) {
@@ -122,10 +122,9 @@ public class MSTResultView extends SwingWorker<Void, Void> {
     }
 
     private double s;
-    private double e;
 
     @Override
-    protected Void doInBackground() throws Exception {
+    protected Void doInBackground() {
         s = System.nanoTime();
         try {
             AtomicInteger i = new AtomicInteger();
@@ -133,7 +132,7 @@ public class MSTResultView extends SwingWorker<Void, Void> {
                     .flatMap(Collection::stream)
                     .forEach(graph -> graphGenerators.get(i.getAndIncrement()).init(graph));
 
-            graphGenerators.forEach(graphGeneratorWorker -> graphGeneratorWorker.compute());
+            graphGenerators.forEach(GraphGeneratorWorker::compute);
         } catch (IndexOutOfBoundsException e) {
             e.printStackTrace();
         }
@@ -143,7 +142,7 @@ public class MSTResultView extends SwingWorker<Void, Void> {
 
     @Override
     protected void done() {
-        e = System.nanoTime();
+        double e = System.nanoTime();
 
         System.out.println((e - s) / 1000000000);
         swingViewer = new SwingViewer(graphLists
@@ -152,7 +151,7 @@ public class MSTResultView extends SwingWorker<Void, Void> {
 
         view = swingViewer.addDefaultView(false);
 
-        JPanel tab =  tabList.stream().findFirst().get();
+        JPanel tab =  tabList.stream().findFirst().orElseThrow();
         tab.add((Component) view);
         tab.validate();
         tab.repaint();

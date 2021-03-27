@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class MinimumSpanningTreePrim extends MyAlgorithm {
-    private List<Edge> edgeList;
 
     @Override
     public void init(Graph graph) {
@@ -18,7 +17,7 @@ public class MinimumSpanningTreePrim extends MyAlgorithm {
         Random random = new Random();
         mstResult = new LinkedList<>();
 
-        edgeList = graph.edges().collect(Collectors.toList());
+        List<Edge> edgeList = graph.edges().collect(Collectors.toList());
 
         int minWeight = 1;
         int maxWeight = 500;

@@ -4,6 +4,7 @@ import com.project.utility.GraphBenchmarkWorker;
 import com.project.utility.MyAlgorithm;
 import com.project.view.ChartResultView;
 import com.project.view.MSTResultView;
+import org.graphstream.graph.Graph;
 
 import javax.swing.*;
 import java.awt.*;
@@ -21,7 +22,6 @@ public class Application extends JFrame implements Runnable {
     private JPanel primTab;
     private JPanel kruskalGraphPanel;
     private JPanel primGraphPanel;
-    private JPanel topPanel;
 
     private JTextField numberOfNodesPerStepTextField;
     private JTextField numberOfStepsTextField;
@@ -42,30 +42,10 @@ public class Application extends JFrame implements Runnable {
         this.setPreferredSize(new Dimension(1280, 720));
 
         initLeftPane(this);
-        //initGraphPanel();
 
         resultTabbedPane = new JTabbedPane();
 
-        /*kruskalTab = new JPanel();
-        primTab = new JPanel();
-
-        kruskalTab.setLayout(new GridLayout());
-        primTab.setLayout(new GridLayout());
-
-        resultTabbedPane.addTab("Kruskal", kruskalTab);
-        resultTabbedPane.addTab("Prim", primTab);
-
-        kruskalTab.add(kruskalGraphPanel);
-        primTab.add(primGraphPanel);*/
-
         this.getContentPane().add(resultTabbedPane);
-
-        //kruskalResultView = new MSTResultView(kruskalGraphPanel, MyAlgorithm.algorithms.KRUSKAL);
-        //primResultView = new MSTResultView(primGraphPanel, MyAlgorithm.algorithms.PRIM);
-        //chartResultView = new ChartResultView(resultTabbedPane);
-
-        //kruskalGraphPanel.add(kruskalResultView.getTabbedPane());
-        //primGraphPanel.add(primResultView.getTabbedPane());
 
         this.setSize(this.getPreferredSize());
         this.pack();
@@ -73,7 +53,7 @@ public class Application extends JFrame implements Runnable {
     }
 
     private void initLeftPane(Container container) {
-        topPanel = new JPanel();
+        JPanel topPanel = new JPanel();
 
         FlowLayout flowLayout = new FlowLayout();
         flowLayout.setHgap(5);
@@ -159,10 +139,8 @@ public class Application extends JFrame implements Runnable {
 
                 try {
                     kruskalResultView.get();
-                } catch (InterruptedException interruptedException) {
+                } catch (InterruptedException | ExecutionException interruptedException) {
                     interruptedException.printStackTrace();
-                } catch (ExecutionException executionException) {
-                    executionException.printStackTrace();
                 }
 
                 if (kruskalResultView.isDone()) {
@@ -170,10 +148,8 @@ public class Application extends JFrame implements Runnable {
                     System.out.println("Kruskal done!");
                     try {
                         primResultView.get();
-                    } catch (InterruptedException interruptedException) {
+                    } catch (InterruptedException | ExecutionException interruptedException) {
                         interruptedException.printStackTrace();
-                    } catch (ExecutionException executionException) {
-                        executionException.printStackTrace();
                     }
                 }
 
@@ -191,11 +167,11 @@ public class Application extends JFrame implements Runnable {
 
             kruskalResultView.getGraphLists().stream()
                     .flatMap(Collection::parallelStream)
-                    .forEach(graph -> graph.clear());
+                    .forEach(Graph::clear);
 
             primResultView.getGraphLists().stream()
                     .flatMap(Collection::parallelStream)
-                    .forEach(graph -> graph.clear());
+                    .forEach(Graph::clear);
 
             kruskalResultView.getSwingViewer().getGraphicGraph().clear();
             primResultView.getSwingViewer().getGraphicGraph().clear();
@@ -229,7 +205,6 @@ public class Application extends JFrame implements Runnable {
                 chartResultView.draw(
                         kruskalResults,
                         primResults,
-                        maxNumberOfIteration,
                         numberOfVertexPerStep);
 
                 this.validate();
