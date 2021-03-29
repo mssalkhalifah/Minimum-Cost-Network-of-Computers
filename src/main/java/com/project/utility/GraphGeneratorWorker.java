@@ -60,7 +60,9 @@ public class GraphGeneratorWorker implements Algorithm {
         assert Toolkit.isConnected(graph) : "Graph not connected";
 
         graph.setAttribute("ui.stylesheet",
-                "node {fill-mode: dyn-plain;}" +
+                "node {fill-mode: image-scaled;" +
+                        "size: 32px;" +
+                        "fill-image: url('src/main/resources/PC.png'); shape: box; }"+
                         "edge {fill-mode: dyn-plain;" +
                         "text-alignment: under; " +
                         "text-color: white; " +
