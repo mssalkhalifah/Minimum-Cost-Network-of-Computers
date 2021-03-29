@@ -162,24 +162,17 @@ public class MSTResultView extends SwingWorker<Void, Void> {
 
         swingViewer.getGraphicGraph().clear();
 
-        swingViewer.getGraphicGraph().setAttribute("ui.stylesheet",
-                "node {fill-mode:  image-scaled;" +
-                        "size: 32px;" +
-                        "fill-image: url('src/main/resources/PC.png'); shape: box; }"+
-                        "edge {fill-mode: dyn-plain;" +
-                        "text-alignment: under; " +
-                        "text-color: white; " +
-                        "text-style: bold; " +
-                        "text-background-mode: rounded-box; " +
-                        "text-background-color: #222C; " +
-                        "text-padding: 1px; " +
-                        "text-offset: 0px, 2px;}");
+        swingViewer.getGraphicGraph().setAttribute("ui.stylesheet", graph.getAttribute("ui.stylesheet"));
 
         try {
             graph.nodes().forEach(node -> {
                 double[] xyz = Toolkit.nodePosition(node);
                 Node changedNode = swingViewer.getGraphicGraph().addNode(node.getId());
-                changedNode.setAttribute("ui.style", node.getAttribute("ui.style"));
+
+                if (node.hasAttribute("ui.class")) {
+                    changedNode.setAttribute("ui.class", "superComputer");
+                }
+
                 changedNode.setAttribute("xyz", xyz[0], xyz[1], xyz[2]);
             });
 
@@ -187,7 +180,11 @@ public class MSTResultView extends SwingWorker<Void, Void> {
                 Edge changedEdge = swingViewer
                         .getGraphicGraph()
                         .addEdge(edge.getId(), edge.getNode0().getId(), edge.getNode1().getId());
-                changedEdge.setAttribute("ui.style", edge.getAttribute("ui.style"));
+
+                if (edge.hasAttribute("ui.style")) {
+                    changedEdge.setAttribute("ui.style", edge.getAttribute("ui.style"));
+                }
+
                 changedEdge.setAttribute("ui.label", edge.getAttribute("ui.label"));
             });
         } catch (IndexOutOfBoundsException | IdAlreadyInUseException | EdgeRejectedException | ElementNotFoundException e) {

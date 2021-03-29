@@ -70,7 +70,8 @@ public class GraphGeneratorWorker implements Algorithm {
                         "text-background-mode: rounded-box; " +
                         "text-background-color: #222C; " +
                         "text-padding: 1px; " +
-                        "text-offset: 0px, 2px;}");
+                        "text-offset: 0px, 2px;}" +
+                        "node.superComputer {fill-image: url('src/main/resources/Redpc.png');}");
 
         graph.setAttribute("ui.quality");
         graph.setAttribute("ui.antialias");

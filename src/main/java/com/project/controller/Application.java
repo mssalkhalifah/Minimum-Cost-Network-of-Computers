@@ -1,220 +1,101 @@
 package com.project.controller;
 
 import com.project.utility.GraphBenchmarkWorker;
-import com.project.utility.MyAlgorithm;
-import com.project.view.ChartResultView;
-import com.project.view.MSTResultView;
+import com.project.view.MainView;
 import org.graphstream.graph.Graph;
 
-import javax.swing.*;
-import java.awt.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class Application extends JFrame implements Runnable {
-    private MSTResultView kruskalResultView;
-    private MSTResultView primResultView;
-    private ChartResultView chartResultView;
-
-    private JTabbedPane resultTabbedPane;
-    private JPanel kruskalTab;
-    private JPanel primTab;
-    private JPanel kruskalGraphPanel;
-    private JPanel primGraphPanel;
-
-    private JTextField numberOfNodesPerStepTextField;
-    private JTextField numberOfStepsTextField;
-    private JTextField iterationsPerStepTextField;
-
-    private JButton generateButton;
-    private JButton clearButton;
-    private JButton runButton;
-
-    private boolean built;
+public class Application {
     private int numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep;
 
-    @Override
-    public void run() {
-        System.setProperty("org.graphstream.ui", "swing");
-        this.setTitle("Minimum Spanning Network");
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setPreferredSize(new Dimension(1280, 720));
+    public void start() {
+        MainView mainView = new MainView();
 
-        initLeftPane(this);
+        mainView.display();
 
-        resultTabbedPane = new JTabbedPane();
+        mainView.getGenerateButton().addActionListener(event -> {
+            mainView.getGenerateButton().setEnabled(false);
+            mainView.getClearButton().setEnabled(true);
+            mainView.getRunButton().setEnabled(true);
 
-        this.getContentPane().add(resultTabbedPane);
+            mainView.initGraphPanel();
 
-        this.setSize(this.getPreferredSize());
-        this.pack();
-        this.setVisible(true);
-    }
+            this.numberOfVertexPerStep = Integer.parseInt(mainView.getNumberOfNodesPerStepTextField().getText());
+            this.maxNumberOfIteration = Integer.parseInt(mainView.getNumberOfStepsTextField().getText()) * numberOfVertexPerStep;
+            this.iterationPerStep = Integer.parseInt(mainView.getIterationsPerStepTextField().getText());
 
-    private void initLeftPane(Container container) {
-        JPanel topPanel = new JPanel();
+            mainView.getKruskalResultView().init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
+            mainView.getPrimResultView().init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
 
-        FlowLayout flowLayout = new FlowLayout();
-        flowLayout.setHgap(5);
+            mainView.getKruskalResultView().execute();
 
-        topPanel.setLayout(flowLayout);
-        topPanel.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
+            try {
+                mainView.getKruskalResultView().get();
+            } catch (InterruptedException | ExecutionException interruptedException) {
+                interruptedException.printStackTrace();
+            }
 
-        topPanel.add(new JLabel("Nodes per step ="));
-        numberOfNodesPerStepTextField = new JTextField();
-        numberOfNodesPerStepTextField.setPreferredSize(new Dimension(70, 20));
-        topPanel.add(numberOfNodesPerStepTextField);
-
-        topPanel.add(new JLabel("Number of steps ="));
-        numberOfStepsTextField = new JTextField();
-        numberOfStepsTextField.setPreferredSize(new Dimension(70, 20));
-        topPanel.add(numberOfStepsTextField);
-
-        topPanel.add(new JLabel("Iteration per step ="));
-        iterationsPerStepTextField = new JTextField();
-        iterationsPerStepTextField.setPreferredSize(new Dimension(70, 20));
-        topPanel.add(iterationsPerStepTextField);
-
-        initButtons();
-
-        topPanel.add(generateButton);
-        topPanel.add(clearButton);
-        topPanel.add(runButton);
-
-        container.add(topPanel, BorderLayout.NORTH);
-    }
-
-    private void initGraphPanel() {
-        kruskalGraphPanel = new JPanel();
-        kruskalGraphPanel.setLayout(new GridLayout());
-        kruskalGraphPanel.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
-
-        primGraphPanel = new JPanel();
-        primGraphPanel.setLayout(new GridLayout());
-        primGraphPanel.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
-    }
-
-    private void initButtons() {
-        Dimension dimension = new Dimension(100, 20);
-
-        generateButton = new JButton("Generate");
-        generateButton.setPreferredSize(dimension);
-
-        generateButton.addActionListener(event -> {
-            if (!built) {
-                generateButton.setEnabled(false);
-                clearButton.setEnabled(true);
-                runButton.setEnabled(true);
-
-                initGraphPanel();
-
-                kruskalTab = new JPanel();
-                primTab = new JPanel();
-
-                kruskalTab.setLayout(new GridLayout());
-                primTab.setLayout(new GridLayout());
-
-                resultTabbedPane.addTab("Kruskal", kruskalTab);
-                resultTabbedPane.addTab("Prim", primTab);
-
-                kruskalTab.add(kruskalGraphPanel);
-                primTab.add(primGraphPanel);
-
-                kruskalResultView = new MSTResultView(kruskalGraphPanel, MyAlgorithm.algorithms.KRUSKAL);
-                primResultView = new MSTResultView(primGraphPanel, MyAlgorithm.algorithms.PRIM);
-                chartResultView = new ChartResultView(resultTabbedPane);
-
-                kruskalGraphPanel.add(kruskalResultView.getTabbedPane());
-                primGraphPanel.add(primResultView.getTabbedPane());
-
-                this.numberOfVertexPerStep = Integer.parseInt(numberOfNodesPerStepTextField.getText());
-                this.maxNumberOfIteration = Integer.parseInt(numberOfStepsTextField.getText()) * numberOfVertexPerStep;
-                this.iterationPerStep = Integer.parseInt(iterationsPerStepTextField.getText());
-
-                kruskalResultView.init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
-                primResultView.init(numberOfVertexPerStep, maxNumberOfIteration, iterationPerStep);
-
-                kruskalResultView.execute();
-
+            if (mainView.getKruskalResultView().isDone()) {
+                mainView.getPrimResultView().execute();
+                System.out.println("Kruskal done!");
                 try {
-                    kruskalResultView.get();
+                    mainView.getPrimResultView().get();
                 } catch (InterruptedException | ExecutionException interruptedException) {
                     interruptedException.printStackTrace();
                 }
-
-                if (kruskalResultView.isDone()) {
-                    primResultView.execute();
-                    System.out.println("Kruskal done!");
-                    try {
-                        primResultView.get();
-                    } catch (InterruptedException | ExecutionException interruptedException) {
-                        interruptedException.printStackTrace();
-                    }
-                }
-
-                built = true;
             }
         });
 
-        clearButton = new JButton("Clear");
-        clearButton.setPreferredSize(dimension);
+        mainView.getClearButton().addActionListener(event -> {
+            mainView.getGenerateButton().setEnabled(true);
+            mainView.getClearButton().setEnabled(false);
+            mainView.getRunButton().setEnabled(false);
 
-        clearButton.addActionListener(event -> {
-            generateButton.setEnabled(true);
-            clearButton.setEnabled(false);
-            runButton.setEnabled(false);
-
-            kruskalResultView.getGraphLists().stream()
+            mainView.getKruskalResultView().getGraphLists().stream()
                     .flatMap(Collection::parallelStream)
                     .forEach(Graph::clear);
 
-            primResultView.getGraphLists().stream()
+            mainView.getPrimResultView().getGraphLists().stream()
                     .flatMap(Collection::parallelStream)
                     .forEach(Graph::clear);
 
-            kruskalResultView.getSwingViewer().getGraphicGraph().clear();
-            primResultView.getSwingViewer().getGraphicGraph().clear();
+            mainView.getKruskalResultView().getSwingViewer().getGraphicGraph().clear();
+            mainView.getPrimResultView().getSwingViewer().getGraphicGraph().clear();
 
-            resultTabbedPane.removeAll();
-
-            built = false;
+            mainView.getResultTabbedPane().removeAll();
         });
 
-        runButton = new JButton("Run");
-        runButton.setPreferredSize(dimension);
-
-        runButton.addActionListener(event -> {
-            generateButton.setEnabled(false);
-            clearButton.setEnabled(true);
-            runButton.setEnabled(false);
+        mainView.getRunButton().addActionListener(event -> {
+            mainView.getGenerateButton().setEnabled(false);
+            mainView.getClearButton().setEnabled(true);
+            mainView.getRunButton().setEnabled(false);
 
             try {
                 GraphBenchmarkWorker graphBenchmarkWorker = new GraphBenchmarkWorker();
 
-                graphBenchmarkWorker.init(kruskalResultView.getGraphLists(), kruskalResultView.getAlgorithm());
+                graphBenchmarkWorker.init(mainView.getKruskalResultView().getGraphLists(), mainView.getKruskalResultView().getAlgorithm());
                 graphBenchmarkWorker.compute();
 
                 List<List<Double>> kruskalResults = graphBenchmarkWorker.getBenchmarkLists();
 
-                graphBenchmarkWorker.init(primResultView.getGraphLists(), primResultView.getAlgorithm());
+                graphBenchmarkWorker.init(mainView.getPrimResultView().getGraphLists(), mainView.getPrimResultView().getAlgorithm());
                 graphBenchmarkWorker.compute();
 
                 List<List<Double>> primResults = graphBenchmarkWorker.getBenchmarkLists();
 
-                chartResultView.draw(
+                mainView.getChartResultView().draw(
                         kruskalResults,
                         primResults,
                         numberOfVertexPerStep);
 
-                this.validate();
-                this.repaint();
+                mainView.validate();
+                mainView.repaint();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-
-        clearButton.setEnabled(false);
-        runButton.setEnabled(false);
     }
 }

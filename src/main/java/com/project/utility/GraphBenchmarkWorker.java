@@ -1,8 +1,8 @@
 package com.project.utility;
 
-import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,48 +24,43 @@ public class GraphBenchmarkWorker {
     }
 
     public void compute() {
-        MyAlgorithm myAlgorithm = null;
-
-        for (int i = 0; i < 1000; i++) {
-            myAlgorithm = (algorithms == MyAlgorithm.algorithms.KRUSKAL)
-                    ? new MinimumSpanningTreeKruskal()
-                    : new MinimumSpanningTreePrim();
-        }
+        List<Double> runTimes = new LinkedList<>();
+        MyAlgorithm myAlgorithm;
 
         for (List<Graph> graphList : graphLists) {
-            List<Double> runTimes = new LinkedList<>();
 
-            for (Graph graph : graphList) {
-                List<Double> temp = new LinkedList<>();
-
-                for (int i = 0; i < 130; i++) {
+            // Warm-up
+            for (int i = 0; i < 1000; i++) {
+                for (Graph graph : graphList) {
                     myAlgorithm = setup(algorithms);
                     myAlgorithm.init(graph);
-
-                    double startTime = System.nanoTime();
                     myAlgorithm.compute();
-                    double endTime = System.nanoTime();
-
-                    temp.add((endTime - startTime));
                 }
+            }
 
-                double value = temp.stream().min(Double::compare).orElseThrow();
+            myAlgorithm = setup(algorithms);
 
-                runTimes.add(value/1000000);
+            // Real test
+            for (Graph graph : graphList) {
+                myAlgorithm.init(graph);
 
-                List<Edge> mstArrayList = myAlgorithm.getMstResult();
-                mstArrayList.forEach(edge -> {
-                    edge.setAttribute("ui.style", "fill-color: blue; size: 5px;");
-                    edge.getNode0().setAttribute("ui.style", "fill-image: url('src/main/resources/PC.png');");
-                    edge.getNode1().setAttribute("ui.style", "fill-image: url('src/main/resources/PC.png');");
-                });
+                double startTime = System.nanoTime();
+                myAlgorithm.compute();
+                double endTime = System.nanoTime();
+
+                runTimes.add((endTime - startTime) /1000000);
+
+                myAlgorithm.getMstResult()
+                        .forEach(edge -> edge.setAttribute("ui.style", "fill-color: blue; size: 5px;"));
+
                 myAlgorithm.getSuperComputers().setAttribute("ui.style", "fill-color: red; size: 4px;");
-                myAlgorithm.getSuperComputers().getNode0().setAttribute("ui.style","fill-image: url('src/main/resources/Redpc.png'); ");
-                myAlgorithm.getSuperComputers().getNode1().setAttribute("ui.style","fill-image: url('src/main/resources/Redpc.png'); ");
+                myAlgorithm.getSuperComputers().getNode0().setAttribute("ui.class", "superComputer");
+                myAlgorithm.getSuperComputers().getNode1().setAttribute("ui.class", "superComputer");
                 myAlgorithm.getSuperComputers().setAttribute("weight", myAlgorithm.getOriginalWeight());
             }
 
-            benchmarkLists.add(runTimes);
+            benchmarkLists.add(new ArrayList<>(runTimes));
+            runTimes.clear();
         }
     }
 

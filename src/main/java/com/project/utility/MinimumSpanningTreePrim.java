@@ -1,41 +1,11 @@
 package com.project.utility;
 
-import org.graphstream.graph.Edge;
-import org.graphstream.graph.Graph;
 import org.jheaps.AddressableHeap;
 import org.jheaps.tree.FibonacciHeap;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MinimumSpanningTreePrim extends MyAlgorithm {
-
-    @Override
-    public void init(Graph graph) {
-        super.graph = graph;
-
-        Random random = new Random();
-        mstResult = new LinkedList<>();
-
-        List<Edge> edgeList = graph.edges().collect(Collectors.toList());
-
-        int minWeight = 1;
-        int maxWeight = 500;
-        for (Edge edge : edgeList) {
-            int weight = minWeight + random.nextInt(maxWeight);
-            edge.setAttribute("weight", weight);
-            edge.setAttribute("ui.label", weight);
-            edge.setAttribute("ui.style", "fill-color: gray;");
-        }
-
-        int randomEdge = random.nextInt(edgeList.size());
-        superComputers = edgeList.get(randomEdge);
-
-        originalWeight = (int) superComputers.getAttribute("weight");
-        superComputers.setAttribute("weight", 0);
-        superComputers.getNode0().setAttribute("ui.style", "fill-image: url('src/main/resources/Redpc.png'); ");
-        superComputers.getNode1().setAttribute("ui.style", "fill-image: url('src/main/resources/Redpc.png'); ");
-    }
 
     @Override
     public void compute() throws IndexOutOfBoundsException {

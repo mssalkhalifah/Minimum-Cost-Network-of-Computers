@@ -4,22 +4,24 @@ com/project/view/ChartResultView.java
  com.project.view.ChartResultView$dataCompareTypes
 com/project/model/Subset.java
  com.project.model.Subset
+com/project/utility/SetUtil.java
+ com.project.utility.SetUtil
+com/project/utility/GraphGeneratorWorker.java
+ com.project.utility.GraphGeneratorWorker
+com/project/utility/GraphBenchmarkWorker.java
+ com.project.utility.GraphBenchmarkWorker
 com/project/utility/MinimumSpanningTreePrim.java
  com.project.utility.MinimumSpanningTreePrim
 com/project/utility/MinimumSpanningTreeKruskal.java
  com.project.utility.MinimumSpanningTreeKruskal
 com/project/view/MSTResultView.java
  com.project.view.MSTResultView
-com/project/utility/SetUtil.java
- com.project.utility.SetUtil
-com/project/utility/GraphGeneratorWorker.java
- com.project.utility.GraphGeneratorWorker
-com/project/controller/Application.java
- com.project.controller.Application
-com/project/utility/GraphBenchmarkWorker.java
- com.project.utility.GraphBenchmarkWorker
 com/project/utility/MyAlgorithm.java
  com.project.utility.MyAlgorithm
  com.project.utility.MyAlgorithm$algorithms
+com/project/view/MainView.java
+ com.project.view.MainView
+com/project/controller/Application.java
+ com.project.controller.Application
 com/project/controller/EntryPoint.java
  com.project.controller.EntryPoint
