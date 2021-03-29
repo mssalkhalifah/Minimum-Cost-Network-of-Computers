@@ -33,8 +33,8 @@ public class MinimumSpanningTreeKruskal extends MyAlgorithm {
 
         originalWeight = (int) superComputers.getAttribute("weight");
         superComputers.setAttribute("weight", 0);
-        superComputers.getNode0().setAttribute("ui.style", "fill-color: red;");
-        superComputers.getNode1().setAttribute("ui.style", "fill-color: red;");
+        superComputers.getNode0().setAttribute("ui.style", "fill-image: url('src/main/resources/Redpc.png'); ");
+        superComputers.getNode1().setAttribute("ui.style", "fill-image: url('src/main/resources/Redpc.png'); ");
     }
 
     @Override

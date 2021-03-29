@@ -56,10 +56,12 @@ public class GraphBenchmarkWorker {
                 List<Edge> mstArrayList = myAlgorithm.getMstResult();
                 mstArrayList.forEach(edge -> {
                     edge.setAttribute("ui.style", "fill-color: blue; size: 5px;");
-                    edge.getNode0().setAttribute("ui.style", "fill-color: black;");
-                    edge.getNode1().setAttribute("ui.style", "fill-color: black;");
+                    edge.getNode0().setAttribute("ui.style", "fill-image: url('src/main/resources/PC.png');");
+                    edge.getNode1().setAttribute("ui.style", "fill-image: url('src/main/resources/PC.png');");
                 });
                 myAlgorithm.getSuperComputers().setAttribute("ui.style", "fill-color: red; size: 4px;");
+                myAlgorithm.getSuperComputers().getNode0().setAttribute("ui.style","fill-image: url('src/main/resources/Redpc.png'); ");
+                myAlgorithm.getSuperComputers().getNode1().setAttribute("ui.style","fill-image: url('src/main/resources/Redpc.png'); ");
                 myAlgorithm.getSuperComputers().setAttribute("weight", myAlgorithm.getOriginalWeight());
             }
 
